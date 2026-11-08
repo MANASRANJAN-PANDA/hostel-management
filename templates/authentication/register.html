@@ -1,0 +1,167 @@
+{% extends "base/base.html" %}
+
+{% block title %}Student Registration - HostelPulse{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow border-0 my-4" style="max-width: 860px; width: 100%; border-radius: 16px;">
+  <div class="card-body p-4 p-md-5">
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 52px; height: 52px; font-size: 1.4rem;">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+      <h3 class="fw-bold mb-1" style="color: var(--navy);">Student Hostel Registration</h3>
+      <p class="text-muted small">Submit your details to apply for hostel residency. Accounts require admin approval before portal access is activated.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'accounts:register' %}">
+      {% csrf_token %}
+
+      <div class="row g-3">
+        <!-- Account Credentials -->
+        <div class="col-12">
+          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+            <i class="fa-solid fa-shield-halved me-1"></i> Account Credentials
+          </h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Username <span class="text-danger">*</span></label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Email Address <span class="text-danger">*</span></label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            {{ form.password }}
+            <button class="btn btn-outline-secondary toggle-password-visibility" type="button" data-target="reg-password" tabindex="-1">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            {{ form.confirm_password }}
+            <button class="btn btn-outline-secondary toggle-password-visibility" type="button" data-target="reg-confirm-password" tabindex="-1">
+              <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          {% if form.confirm_password.errors %}<div class="text-danger small">{{ form.confirm_password.errors }}</div>{% endif %}
+        </div>
+
+        <!-- Personal Information -->
+        <div class="col-12 mt-4">
+          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+            <i class="fa-solid fa-user me-1"></i> Personal Information
+          </h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">First Name <span class="text-danger">*</span></label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name <span class="text-danger">*</span></label>
+          {{ form.last_name }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+          {{ form.phone }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+          {{ form.dob }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Gender <span class="text-danger">*</span></label>
+          {{ form.gender }}
+        </div>
+
+        <div class="col-md-12">
+          <label class="form-label">Profile Photo (Optional)</label>
+          {{ form.profile_picture }}
+        </div>
+
+        <!-- Academic Information -->
+        <div class="col-12 mt-4">
+          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+            <i class="fa-solid fa-graduation-cap me-1"></i> Academic Information
+          </h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">College Registration / Enrolment No. <span class="text-danger">*</span></label>
+          {{ form.reg_number }}
+          {% if form.reg_number.errors %}<div class="text-danger small">{{ form.reg_number.errors }}</div>{% endif %}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Roll Number</label>
+          {{ form.roll_number }}
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label">Course / Degree <span class="text-danger">*</span></label>
+          {{ form.course }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Department / Branch <span class="text-danger">*</span></label>
+          {{ form.department }}
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Academic Year <span class="text-danger">*</span></label>
+          {{ form.academic_year }}
+        </div>
+
+        <!-- Guardian & Contact Details -->
+        <div class="col-12 mt-4">
+          <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">
+            <i class="fa-solid fa-phone me-1"></i> Emergency & Guardian Information
+          </h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Parent / Guardian Name <span class="text-danger">*</span></label>
+          {{ form.parent_name }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Parent Contact Phone <span class="text-danger">*</span></label>
+          {{ form.parent_phone }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Emergency Contact Number <span class="text-danger">*</span></label>
+          {{ form.emergency_contact }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Permanent Address <span class="text-danger">*</span></label>
+          {{ form.address }}
+        </div>
+      </div>
+
+      <div class="alert alert-info d-flex align-items-center gap-2 mt-4 mb-3" style="font-size: 0.88rem;">
+        <i class="fa-solid fa-circle-info fs-5"></i>
+        <div>
+          <strong>Note:</strong> After registration, your profile will be queued for review by the Hostel Warden. You will be able to access the student dashboard as soon as administrator approval is granted.
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-arrow-left me-1"></i> Back to Login
+        </a>
+        <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold">
+          <i class="fa-solid fa-paper-plane me-1"></i> Submit Registration
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

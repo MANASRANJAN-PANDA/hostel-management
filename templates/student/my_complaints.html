@@ -1,0 +1,86 @@
+{% extends "base/base.html" %}
+
+{% block title %}My Complaints - HostelPulse{% endblock %}
+{% block page_title %}My Complaint Tickets{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Complaints</h1>
+    <div class="page-subtitle">Track the resolution status and warden remarks on issues submitted by you.</div>
+  </div>
+  <div>
+    <a href="{% url 'complaints:student_complaint_submit' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> Lodge New Complaint
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-list-check text-primary"></i> Complaints Submitted ({{ page_obj.paginator.count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Ticket #</th>
+            <th>Title & Category</th>
+            <th>Logged Date</th>
+            <th>Status</th>
+            <th>Warden / Resolution Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in complaints %}
+            <tr>
+              <td><code>#{{ c.id }}</code></td>
+              <td>
+                <div class="fw-bold">{{ c.title }}</div>
+                <small class="badge bg-light text-dark border">{{ c.get_category_display }}</small>
+              </td>
+              <td>{{ c.created_at|date:"d M Y, H:i" }}</td>
+              <td>
+                {% if c.status == 'RESOLVED' %}
+                  <span class="badge-status badge-success">Resolved</span>
+                {% elif c.status == 'IN_PROGRESS' %}
+                  <span class="badge-status badge-info">In Progress</span>
+                {% elif c.status == 'UNDER_REVIEW' %}
+                  <span class="badge-status badge-warning">Under Review</span>
+                {% elif c.status == 'REJECTED' %}
+                  <span class="badge-status badge-danger">Rejected</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">Submitted</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if c.resolution_notes %}
+                  <div class="small fw-semibold text-success">{{ c.resolution_notes }}</div>
+                {% elif c.history.all %}
+                  <div class="small text-muted">{{ c.history.first.remarks }}</div>
+                {% else %}
+                  <span class="text-muted small">Awaiting review</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-circle-check empty-state-icon text-success"></i>
+                  <div class="empty-state-title">No Complaints Logged</div>
+                  <div class="empty-state-text">You have not submitted any complaint tickets.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base/base.html" %}
+
+{% block title %}My Room - HostelPulse{% endblock %}
+{% block page_title %}My Room & Roommates{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Room Allocation</h1>
+    <div class="page-subtitle">Current room details, facilities, roommates and residency history.</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% if current_allocation %}
+    <!-- Room details card -->
+    <div class="col-lg-6">
+      <div class="dashboard-card h-100 mb-0">
+        <div class="dashboard-card-header">
+          <h5 class="dashboard-card-title text-primary">
+            <i class="fa-solid fa-door-open"></i> {{ current_allocation.room.hostel.name }} - Room {{ current_allocation.room.room_number }}
+          </h5>
+          <span class="badge bg-success">Active Bed</span>
+        </div>
+        <div class="dashboard-card-body">
+          <div class="row text-center p-3 bg-light rounded-3 border mb-4">
+            <div class="col-4">
+              <small class="text-muted d-block">Room Number</small>
+              <h4 class="fw-bold text-primary mb-0">{{ current_allocation.room.room_number }}</h4>
+            </div>
+            <div class="col-4">
+              <small class="text-muted d-block">Floor</small>
+              <h5 class="fw-bold mb-0">{{ current_allocation.room.floor.floor_name }}</h5>
+            </div>
+            <div class="col-4">
+              <small class="text-muted d-block">Sharing Type</small>
+              <h5 class="fw-bold mb-0">{{ current_allocation.room.get_room_type_display }}</h5>
+            </div>
+          </div>
+
+          <div class="list-group list-group-flush border rounded-3 mb-3">
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Hostel Facility:</span>
+              <strong>{{ current_allocation.room.hostel.name }} ({{ current_allocation.room.hostel.code }})</strong>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Hostel Gender Policy:</span>
+              <span>{{ current_allocation.room.hostel.get_gender_type_display }}</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Monthly Hostel Rent:</span>
+              <strong class="text-dark">₹{{ current_allocation.room.monthly_rent }}</strong>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Allocated Date:</span>
+              <span>{{ current_allocation.allocation_date|date:"d M Y" }}</span>
+            </div>
+            <div class="list-group-item d-flex justify-content-between align-items-center py-2">
+              <span class="text-muted">Room Capacity:</span>
+              <span>{{ current_allocation.room.capacity }} Beds</span>
+            </div>
+          </div>
+
+          {% if current_allocation.room.description %}
+            <div class="alert alert-light border small">
+              <strong>Room Facilities / Notes:</strong>
+              <p class="mb-0 mt-1">{{ current_allocation.room.description }}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Roommates card -->
+    <div class="col-lg-6">
+      <div class="dashboard-card h-100 mb-0">
+        <div class="dashboard-card-header">
+          <h5 class="dashboard-card-title text-primary">
+            <i class="fa-solid fa-users"></i> Roommates in Room {{ current_allocation.room.room_number }}
+          </h5>
+          <span class="badge bg-light text-muted border">{{ roommates|length }} other resident(s)</span>
+        </div>
+        <div class="dashboard-card-body p-0">
+          {% if roommates %}
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Roommate</th>
+                    <th>Course</th>
+                    <th>Department</th>
+                    <th>Allocated Since</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for rm in roommates %}
+                    <tr>
+                      <td>
+                        <div class="fw-bold">{{ rm.student.user.get_display_name }}</div>
+                        <small class="text-muted">{{ rm.student.reg_number }}</small>
+                      </td>
+                      <td>{{ rm.student.course }}</td>
+                      <td>{{ rm.student.department }}</td>
+                      <td>{{ rm.allocation_date|date:"d M Y" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="p-4 text-center text-muted">
+              <i class="fa-solid fa-user-group fs-2 mb-2 d-block text-secondary"></i>
+              No other roommates allocated in this room currently.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="col-12">
+      <div class="empty-state">
+        <i class="fa-solid fa-bed empty-state-icon"></i>
+        <div class="empty-state-title">No Active Room Allocation</div>
+        <div class="empty-state-text">You have not been assigned a hostel room yet. Please contact your Hostel Warden to complete bed allocation.</div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Past Allocations History -->
+  {% if past_allocations %}
+    <div class="col-12 mt-4">
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <h5 class="dashboard-card-title text-muted">
+            <i class="fa-solid fa-clock-rotate-left"></i> Previous Room Residency History
+          </h5>
+        </div>
+        <div class="dashboard-card-body p-0">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Hostel & Room</th>
+                  <th>Allocated Date</th>
+                  <th>Vacated Date</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for pa in past_allocations %}
+                  <tr>
+                    <td><strong>{{ pa.room.hostel.name }}</strong> - Room {{ pa.room.room_number }}</td>
+                    <td>{{ pa.allocation_date|date:"d M Y" }}</td>
+                    <td>{{ pa.vacating_date|date:"d M Y"|default:"-" }}</td>
+                    <td>
+                      {% if pa.status == 'TRANSFERRED' %}
+                        <span class="badge-status badge-info">Transferred</span>
+                      {% else %}
+                        <span class="badge-status badge-secondary">Vacated</span>
+                      {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ pa.notes|default:"-" }}</small></td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+<header class="app-topbar">
+  <div class="topbar-left">
+    <button class="sidebar-toggle-btn" id="sidebar-toggle-btn" aria-label="Toggle Navigation">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="topbar-page-title d-none d-sm-block">
+      {% block page_title %}Hostel Operations Portal{% endblock %}
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    {% if user.is_superadmin %}
+      <span class="role-pill role-pill-admin">
+        <i class="fa-solid fa-shield-halved me-1"></i> Super Admin
+      </span>
+    {% elif user.is_warden %}
+      <span class="role-pill role-pill-warden">
+        <i class="fa-solid fa-user-shield me-1"></i> Hostel Warden
+      </span>
+    {% elif user.is_student %}
+      <span class="role-pill role-pill-student">
+        <i class="fa-solid fa-graduation-cap me-1"></i> Student
+      </span>
+    {% endif %}
+
+    <!-- User Dropdown Menu -->
+    <div class="dropdown">
+      <button class="btn btn-link text-decoration-none text-dark d-flex align-items-center gap-2 p-0 dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        {% if user.profile_picture %}
+          <img src="{{ user.profile_picture.url }}" alt="avatar" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;">
+        {% else %}
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600;">
+            {{ user.first_name|first|default:user.username|first|upper }}
+          </div>
+        {% endif %}
+        <span class="d-none d-md-inline fw-semibold" style="font-size: 0.9rem;">{{ user.get_display_name }}</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+        <li class="px-3 py-2 border-bottom">
+          <div class="fw-bold">{{ user.get_display_name }}</div>
+          <small class="text-muted">{{ user.email }}</small>
+        </li>
+        {% if user.is_student %}
+          <li><a class="dropdown-item py-2" href="{% url 'student_profile' %}"><i class="fa-solid fa-user me-2 text-primary"></i> My Profile</a></li>
+          <li><a class="dropdown-item py-2" href="{% url 'student_my_room' %}"><i class="fa-solid fa-bed me-2 text-primary"></i> My Room</a></li>
+        {% endif %}
+        <li><a class="dropdown-item py-2" href="{% url 'accounts:change_password' %}"><i class="fa-solid fa-key me-2 text-secondary"></i> Change Password</a></li>
+        <li><hr class="dropdown-divider my-1"></li>
+        <li>
+          <a class="dropdown-item py-2 text-danger" href="{% url 'accounts:logout' %}">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Log Out
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,231 @@
+<aside class="app-sidebar">
+  <a href="{% url 'accounts:dashboard_redirect' %}" class="sidebar-brand">
+    <i class="fa-solid fa-hotel"></i>
+    <span>{{ SYSTEM_NAME }}</span>
+  </a>
+
+  <div class="sidebar-nav-container">
+    {% if user.is_superadmin %}
+      <!-- SUPER ADMIN NAVIGATION -->
+      <div class="sidebar-section-title">Core Management</div>
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="{% url 'admin_dashboard' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-gauge-high"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'students:student_list' %}" class="sidebar-nav-link {% if 'students' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span>Students</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'wardens:warden_list' %}" class="sidebar-nav-link {% if 'wardens' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>Wardens</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'hostels:hostel_list' %}" class="sidebar-nav-link {% if 'hostels' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-building"></i>
+            <span>Hostel Buildings</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'rooms:room_list' %}" class="sidebar-nav-link {% if 'rooms' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-door-open"></i>
+            <span>Rooms</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'allocations:allocation_list' %}" class="sidebar-nav-link {% if 'allocations' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-key"></i>
+            <span>Room Allocation</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-section-title">Operations & Finance</div>
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="{% url 'fees:fee_list' %}" class="sidebar-nav-link {% if 'fees' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>Fee Management</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'complaints:complaint_list' %}" class="sidebar-nav-link {% if 'complaints' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Complaints</span>
+            {% if pending_complaints_count > 0 %}
+              <span class="sidebar-badge">{{ pending_complaints_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'attendance:attendance_list' %}" class="sidebar-nav-link {% if 'attendance' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Attendance</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'notices:admin_notice_list' %}" class="sidebar-nav-link {% if 'notices' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Notice Board</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'visitors:visitor_list' %}" class="sidebar-nav-link {% if 'visitors' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-id-badge"></i>
+            <span>Visitors</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'reports:reports_index' %}" class="sidebar-nav-link {% if 'reports' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Reports & Analytics</span>
+          </a>
+        </li>
+      </ul>
+
+    {% elif user.is_warden %}
+      <!-- WARDEN NAVIGATION -->
+      <div class="sidebar-section-title">Hostel Warden Portal</div>
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="{% url 'warden_dashboard' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'warden_dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-gauge-high"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'students:student_list' %}" class="sidebar-nav-link {% if 'students' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-user-graduate"></i>
+            <span>Students</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'rooms:room_list' %}" class="sidebar-nav-link {% if 'rooms' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-door-open"></i>
+            <span>Room Management</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'allocations:allocation_list' %}" class="sidebar-nav-link {% if 'allocations' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-key"></i>
+            <span>Room Allocation</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'attendance:attendance_list' %}" class="sidebar-nav-link {% if 'attendance' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Daily Attendance</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'complaints:complaint_list' %}" class="sidebar-nav-link {% if 'complaints' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Complaints</span>
+            {% if pending_complaints_count > 0 %}
+              <span class="sidebar-badge">{{ pending_complaints_count }}</span>
+            {% endif %}
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'visitors:visitor_list' %}" class="sidebar-nav-link {% if 'visitors' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-id-badge"></i>
+            <span>Visitor Log</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'notices:admin_notice_list' %}" class="sidebar-nav-link {% if 'notices' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-bullhorn"></i>
+            <span>Notice Board</span>
+          </a>
+        </li>
+      </ul>
+
+    {% elif user.is_student %}
+      <!-- STUDENT NAVIGATION -->
+      <div class="sidebar-section-title">Student Portal</div>
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-item">
+          <a href="{% url 'student_dashboard' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-house-user"></i>
+            <span>My Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'student_profile' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'student_profile' %}active{% endif %}">
+            <i class="fa-solid fa-id-card"></i>
+            <span>My Profile</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'student_my_room' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'student_my_room' %}active{% endif %}">
+            <i class="fa-solid fa-bed"></i>
+            <span>My Room & Roommates</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'student_my_fees' %}" class="sidebar-nav-link {% if request.resolver_match.url_name == 'student_my_fees' %}active{% endif %}">
+            <i class="fa-solid fa-receipt"></i>
+            <span>My Fees & Payments</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'complaints:my_complaints' %}" class="sidebar-nav-link {% if 'complaints' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>My Complaints</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'attendance:my_attendance' %}" class="sidebar-nav-link {% if 'attendance' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>My Attendance</span>
+          </a>
+        </li>
+        <li class="sidebar-nav-item">
+          <a href="{% url 'notices:student_board' %}" class="sidebar-nav-link {% if 'notices' in request.path %}active{% endif %}">
+            <i class="fa-solid fa-newspaper"></i>
+            <span>Hostel Notices</span>
+          </a>
+        </li>
+      </ul>
+    {% endif %}
+
+    <div class="sidebar-section-title">Account</div>
+    <ul class="sidebar-nav">
+      <li class="sidebar-nav-item">
+        <a href="{% url 'accounts:change_password' %}" class="sidebar-nav-link {% if 'change-password' in request.path %}active{% endif %}">
+          <i class="fa-solid fa-lock"></i>
+          <span>Change Password</span>
+        </a>
+      </li>
+      <li class="sidebar-nav-item">
+        <a href="{% url 'accounts:logout' %}" class="sidebar-nav-link text-danger">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user-card">
+      {% if user.profile_picture %}
+        <img src="{{ user.profile_picture.url }}" alt="{{ user.get_display_name }}" class="sidebar-avatar">
+      {% else %}
+        <div class="sidebar-avatar d-flex align-items-center justify-content-center text-white font-weight-bold">
+          {{ user.first_name|first|default:user.username|first|upper }}
+        </div>
+      {% endif %}
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">{{ user.get_display_name }}</div>
+        <div class="sidebar-user-role">{{ user.get_role_display }}</div>
+      </div>
+    </div>
+  </div>
+</aside>

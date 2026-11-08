@@ -1,0 +1,173 @@
+{% extends "base/base.html" %}
+
+{% block title %}Room {{ room.room_number }} - {{ room.hostel.name }} - HostelPulse{% endblock %}
+{% block page_title %}Room Details{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ room.hostel.name }} - Room {{ room.room_number }}</h1>
+    <div class="page-subtitle">Floor: {{ room.floor.floor_name }} | {{ room.get_room_type_display }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    {% if room.available_beds > 0 and room.room_status != 'MAINTENANCE' %}
+      <a href="{% url 'allocations:allocation_create' %}?room={{ room.pk }}" class="btn-primary-custom">
+        <i class="fa-solid fa-key"></i> Allocate Bed
+      </a>
+    {% endif %}
+    <a href="{% url 'rooms:room_update' room.pk %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-pen-to-square"></i> Edit Room
+    </a>
+    <a href="{% url 'rooms:room_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back to Rooms
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Room Info Summary Cards -->
+  <div class="col-12">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-info">
+          <span class="stat-label">Bed Occupancy</span>
+          <span class="stat-value">{{ room.current_occupancy }} / {{ room.capacity }}</span>
+          <span class="stat-sub text-success">{{ room.available_beds }} beds vacant</span>
+        </div>
+        <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-bed"></i></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <span class="stat-label">Monthly Rent</span>
+          <span class="stat-value text-dark">₹{{ room.monthly_rent }}</span>
+          <span class="stat-sub text-muted">Per student / bed</span>
+        </div>
+        <div class="stat-icon stat-icon-green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-info">
+          <span class="stat-label">Current Status</span>
+          <span class="stat-value fs-4">
+            {% if room.room_status == 'AVAILABLE' %}
+              <span class="badge-status badge-success">Available</span>
+            {% elif room.room_status == 'PARTIALLY_OCCUPIED' %}
+              <span class="badge-status badge-info">Partially Full</span>
+            {% elif room.room_status == 'FULL' %}
+              <span class="badge-status badge-danger">Full</span>
+            {% else %}
+              <span class="badge-status badge-warning">Maintenance</span>
+            {% endif %}
+          </span>
+          <span class="stat-sub text-muted">{{ room.get_room_type_display }}</span>
+        </div>
+        <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-door-open"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Student Residents in this room -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-users text-primary"></i> Current Active Residents ({{ active_allocations.count }})
+        </h5>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Reg No.</th>
+                <th>Allocated On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for a in active_allocations %}
+                <tr>
+                  <td>
+                    <div class="fw-bold">
+                      <a href="{% url 'students:student_detail' a.student.pk %}" class="text-decoration-none text-dark">
+                        {{ a.student.user.get_display_name }}
+                      </a>
+                    </div>
+                    <small class="text-muted">{{ a.student.course }}</small>
+                  </td>
+                  <td><code>{{ a.student.reg_number }}</code></td>
+                  <td>{{ a.allocation_date|date:"d M Y" }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="{% url 'allocations:allocation_transfer' a.pk %}" class="btn btn-outline-primary" title="Transfer">
+                        <i class="fa-solid fa-right-left"></i>
+                      </a>
+                      <a href="{% url 'allocations:allocation_vacate' a.pk %}" class="btn btn-outline-danger" title="Vacate">
+                        <i class="fa-solid fa-door-open"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No active students allocated in this room.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Allocation History for this room -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-clock-rotate-left text-primary"></i> Room Allocation History
+        </h5>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Allocated Date</th>
+                <th>Vacated Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in allocation_history %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ h.student.user.get_display_name }}</div>
+                    <small class="text-muted">{{ h.student.reg_number }}</small>
+                  </td>
+                  <td>{{ h.allocation_date|date:"d M Y" }}</td>
+                  <td>{{ h.vacating_date|date:"d M Y"|default:"-" }}</td>
+                  <td>
+                    {% if h.status == 'TRANSFERRED' %}
+                      <span class="badge-status badge-info">Transferred</span>
+                    {% elif h.status == 'VACATED' %}
+                      <span class="badge-status badge-secondary">Vacated</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No past allocation history.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

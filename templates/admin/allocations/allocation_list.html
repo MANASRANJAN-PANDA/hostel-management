@@ -1,0 +1,142 @@
+{% extends "base/base.html" %}
+
+{% block title %}Room Allocations - HostelPulse{% endblock %}
+{% block page_title %}Room Allocation Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Room Allocations</h1>
+    <div class="page-subtitle">Assign students to rooms, process room transfers, and manage vacating / clearance checkouts.</div>
+  </div>
+  <div>
+    <a href="{% url 'allocations:allocation_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-key"></i> New Room Allocation
+    </a>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by student name, Reg No, room or hostel...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hostel Building</label>
+      <select name="hostel" class="form-select">
+        <option value="">All Hostels</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Allocation Status</label>
+      <select name="status" class="form-select">
+        <option value="ACTIVE" {% if status == 'ACTIVE' %}selected{% endif %}>Active Allocations</option>
+        <option value="VACATED" {% if status == 'VACATED' %}selected{% endif %}>Vacated</option>
+        <option value="TRANSFERRED" {% if status == 'TRANSFERRED' %}selected{% endif %}>Transferred</option>
+        <option value="ALL" {% if status == 'ALL' %}selected{% endif %}>All Records</option>
+      </select>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'allocations:allocation_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Allocations Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-list-check text-primary"></i> Allocation Records ({{ page_obj.paginator.count }})
+    </h5>
+    <div class="d-flex gap-2">
+      <span class="badge bg-success bg-opacity-10 text-success border border-success">{{ active_count }} Active</span>
+      <span class="badge bg-secondary bg-opacity-10 text-secondary border">{{ vacated_count }} Vacated</span>
+    </div>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Reg Number</th>
+            <th>Room & Hostel</th>
+            <th>Allocated Date</th>
+            <th>Vacated Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in allocations %}
+            <tr>
+              <td>
+                <div class="fw-bold">
+                  <a href="{% url 'students:student_detail' a.student.pk %}" class="text-dark text-decoration-none">
+                    {{ a.student.user.get_display_name }}
+                  </a>
+                </div>
+                <small class="text-muted">{{ a.student.course }}</small>
+              </td>
+              <td><code>{{ a.student.reg_number }}</code></td>
+              <td>
+                <a href="{% url 'rooms:room_detail' a.room.pk %}" class="fw-bold text-primary text-decoration-none">
+                  {{ a.room.hostel.code }} - Room {{ a.room.room_number }}
+                </a>
+                <div class="text-muted small">Floor {{ a.room.floor.floor_number }}</div>
+              </td>
+              <td>{{ a.allocation_date|date:"d M Y" }}</td>
+              <td>{{ a.vacating_date|date:"d M Y"|default:"-" }}</td>
+              <td>
+                {% if a.status == 'ACTIVE' %}
+                  <span class="badge-status badge-success">Active</span>
+                {% elif a.status == 'TRANSFERRED' %}
+                  <span class="badge-status badge-info">Transferred</span>
+                {% elif a.status == 'VACATED' %}
+                  <span class="badge-status badge-secondary">Vacated</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if a.status == 'ACTIVE' %}
+                  <div class="btn-group btn-group-sm">
+                    <a href="{% url 'allocations:allocation_transfer' a.pk %}" class="btn btn-outline-primary" title="Transfer Student to Another Room">
+                      <i class="fa-solid fa-right-left"></i> Transfer
+                    </a>
+                    <a href="{% url 'allocations:allocation_vacate' a.pk %}" class="btn btn-outline-danger" title="Vacate Room">
+                      <i class="fa-solid fa-door-open"></i> Vacate
+                    </a>
+                  </div>
+                {% else %}
+                  <span class="text-muted small">Archived</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-key empty-state-icon"></i>
+                  <div class="empty-state-title">No Allocation Records Found</div>
+                  <div class="empty-state-text">No room allocations match your query. Click "+ New Room Allocation" to allocate a bed.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

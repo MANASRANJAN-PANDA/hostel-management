@@ -1,0 +1,177 @@
+{% extends "base/base.html" %}
+
+{% block title %}Student Management - HostelPulse{% endblock %}
+{% block page_title %}Student Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Students Directory</h1>
+    <div class="page-subtitle">Manage enrolled students, registration verification, academic records and allocations.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'students:student_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-user-plus"></i> Add New Student
+    </a>
+  </div>
+</div>
+
+<!-- Filter & Search Bar -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search Query</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by name, Reg No, Roll No, phone or email...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hostel</label>
+      <select name="hostel" class="form-select">
+        <option value="">All Hostels</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Account Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        <option value="ACTIVE" {% if status == 'ACTIVE' %}selected{% endif %}>Active</option>
+        <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending Approval</option>
+        <option value="INACTIVE" {% if status == 'INACTIVE' %}selected{% endif %}>Inactive / Suspended</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Academic Year</label>
+      <select name="year" class="form-select">
+        <option value="">All Years</option>
+        <option value="1st Year" {% if year == '1st Year' %}selected{% endif %}>1st Year</option>
+        <option value="2nd Year" {% if year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+        <option value="3rd Year" {% if year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+        <option value="4th Year" {% if year == '4th Year' %}selected{% endif %}>4th Year</option>
+        <option value="Postgraduate" {% if year == 'Postgraduate' %}selected{% endif %}>Postgraduate</option>
+      </select>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'students:student_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Student List Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-users text-primary"></i> Students ({{ page_obj.paginator.count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Reg / Roll No.</th>
+            <th>Course & Dept</th>
+            <th>Room Allocation</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if s.user.profile_picture %}
+                    <img src="{{ s.user.profile_picture.url }}" alt="avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
+                  {% else %}
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                      {{ s.user.first_name|first|default:s.user.username|first|upper }}
+                    </div>
+                  {% endif %}
+                  <div>
+                    <a href="{% url 'students:student_detail' s.pk %}" class="fw-bold text-dark text-decoration-none">
+                      {{ s.user.get_display_name }}
+                    </a>
+                    <div class="text-muted small">{{ s.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border"><code>{{ s.reg_number }}</code></span>
+                {% if s.roll_number %}<div class="text-muted small">Roll: {{ s.roll_number }}</div>{% endif %}
+              </td>
+              <td>
+                <div>{{ s.course }}</div>
+                <small class="text-muted">{{ s.department }} ({{ s.academic_year }})</small>
+              </td>
+              <td>
+                {% if s.current_room %}
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                    <i class="fa-solid fa-bed me-1"></i> {{ s.current_room.hostel.code }}-{{ s.current_room.room_number }}
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-muted border">No Active Room</span>
+                {% endif %}
+              </td>
+              <td>{{ s.user.phone|default:"-" }}</td>
+              <td>
+                {% if s.account_status == 'ACTIVE' %}
+                  <span class="badge-status badge-success">Active</span>
+                {% elif s.account_status == 'PENDING' %}
+                  <span class="badge-status badge-warning">Pending Approval</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">{{ s.get_account_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'students:student_detail' s.pk %}" class="btn btn-light border" title="View Profile">
+                    <i class="fa-solid fa-eye text-primary"></i>
+                  </a>
+                  <a href="{% url 'students:student_update' s.pk %}" class="btn btn-light border" title="Edit Student">
+                    <i class="fa-solid fa-pen-to-square text-secondary"></i>
+                  </a>
+                  {% if s.account_status == 'PENDING' %}
+                    <a href="{% url 'students:student_approve' s.pk %}" class="btn btn-success" title="Approve Student">
+                      <i class="fa-solid fa-check"></i>
+                    </a>
+                    <a href="{% url 'students:student_reject' s.pk %}" class="btn btn-outline-danger" title="Reject Application">
+                      <i class="fa-solid fa-xmark"></i>
+                    </a>
+                  {% endif %}
+                  {% if user.is_superadmin %}
+                    <a href="{% url 'students:student_delete' s.pk %}" class="btn btn-light border text-danger" title="Delete">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-user-slash empty-state-icon"></i>
+                  <div class="empty-state-title">No Students Found</div>
+                  <div class="empty-state-text">No student records match your query or filter criteria.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

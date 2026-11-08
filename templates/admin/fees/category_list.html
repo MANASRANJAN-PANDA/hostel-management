@@ -1,0 +1,107 @@
+{% extends "base/base.html" %}
+
+{% block title %}Fee Categories - HostelPulse{% endblock %}
+{% block page_title %}Fee Categories Configuration{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Fee Categories</h1>
+    <div class="page-subtitle">Standard fee tariff structures (Hostel Rent, Mess Fee, Electricity Fee, Maintenance Fee, Other Charges).</div>
+  </div>
+  <div>
+    <a href="{% url 'fees:fee_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back to Fee Records
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Category Creation Form -->
+  <div class="col-lg-5">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-plus text-primary"></i> Add Fee Category
+        </h5>
+      </div>
+      <div class="dashboard-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Category Name <span class="text-danger">*</span></label>
+            {{ form.name }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Unique Code <span class="text-danger">*</span></label>
+            {{ form.code }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Default Amount (₹) <span class="text-danger">*</span></label>
+            {{ form.default_amount }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (Optional)</label>
+            {{ form.description }}
+          </div>
+          <div class="mb-3 form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="id_is_active">Active category</label>
+          </div>
+          <button type="submit" class="btn btn-primary-custom w-100 justify-content-center">
+            <i class="fa-solid fa-check me-1"></i> Save Category
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Existing Categories Table -->
+  <div class="col-lg-7">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-tags text-primary"></i> Configured Tariff Categories ({{ categories.count }})
+        </h5>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Code</th>
+                <th>Default Tariff</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in categories %}
+                <tr>
+                  <td>
+                    <div class="fw-bold">{{ c.name }}</div>
+                    <small class="text-muted">{{ c.description|default:"Standard fee charge" }}</small>
+                  </td>
+                  <td><code>{{ c.code }}</code></td>
+                  <td class="fw-bold text-dark">₹{{ c.default_amount }}</td>
+                  <td>
+                    {% if c.is_active %}
+                      <span class="badge-status badge-success">Active</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">Disabled</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">No categories configured yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base/base.html" %}
+
+{% block title %}Account Pending Approval - HostelPulse{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow border-0 text-center p-4 p-md-5" style="max-width: 520px; width: 100%; border-radius: 16px;">
+  <div class="d-inline-flex align-items-center justify-content-center bg-warning text-dark rounded-circle mx-auto mb-4" style="width: 72px; height: 72px; font-size: 2rem;">
+    <i class="fa-solid fa-hourglass-half"></i>
+  </div>
+  
+  <h3 class="fw-bold mb-2" style="color: var(--navy);">Registration Under Review</h3>
+  <p class="text-muted mb-4">
+    Thank you for registering. Your student application is currently awaiting verification and approval by the Hostel Administration.
+  </p>
+
+  <div class="bg-light p-3 rounded-3 text-start mb-4 border" style="font-size: 0.9rem;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <i class="fa-solid fa-circle-check text-success"></i>
+      <span>Details received and verified for duplicates</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <i class="fa-solid fa-clock text-warning"></i>
+      <span>Warden / Admin verification in progress</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 text-muted">
+      <i class="fa-solid fa-circle text-secondary"></i>
+      <span>Room allocation and portal access unlocking</span>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-center gap-2">
+    <a href="{% url 'accounts:logout' %}" class="btn btn-outline-secondary px-4">
+      <i class="fa-solid fa-arrow-right-from-bracket me-1"></i> Sign Out
+    </a>
+    <a href="{% url 'accounts:login' %}" class="btn btn-primary px-4">
+      <i class="fa-solid fa-rotate-right me-1"></i> Check Again
+    </a>
+  </div>
+</div>
+{% endblock %}

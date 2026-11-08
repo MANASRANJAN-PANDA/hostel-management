@@ -1,0 +1,165 @@
+{% extends "base/base.html" %}
+
+{% block title %}Room Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Rooms Directory{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Room Management</h1>
+    <div class="page-subtitle">Manage room capacities, occupancy levels, rent schedules and statuses.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'allocations:allocation_create' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-key"></i> Allocate Room
+    </a>
+    <a href="{% url 'rooms:room_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> Create New Room
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filter Card -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by room number or building...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hostel</label>
+      <select name="hostel" class="form-select">
+        <option value="">All Hostels</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Room Type</label>
+      <select name="type" class="form-select">
+        <option value="">All Types</option>
+        <option value="SINGLE" {% if room_type == 'SINGLE' %}selected{% endif %}>Single Sharing</option>
+        <option value="DOUBLE" {% if room_type == 'DOUBLE' %}selected{% endif %}>Double Sharing</option>
+        <option value="TRIPLE" {% if room_type == 'TRIPLE' %}selected{% endif %}>Triple Sharing</option>
+        <option value="FOUR" {% if room_type == 'FOUR' %}selected{% endif %}>Four Sharing</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Availability</label>
+      <select name="availability" class="form-select">
+        <option value="">Any Status</option>
+        <option value="available" {% if availability == 'available' %}selected{% endif %}>Has Available Beds</option>
+        <option value="full" {% if availability == 'full' %}selected{% endif %}>Fully Occupied</option>
+      </select>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'rooms:room_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Rooms Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-door-open text-primary"></i> Rooms List ({{ total_count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Room Number</th>
+            <th>Hostel Building</th>
+            <th>Floor</th>
+            <th>Type</th>
+            <th>Bed Capacity & Occupancy</th>
+            <th>Monthly Rent</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rooms %}
+            <tr>
+              <td>
+                <a href="{% url 'rooms:room_detail' r.pk %}" class="fw-bold text-primary text-decoration-none fs-6">
+                  {{ r.room_number }}
+                </a>
+              </td>
+              <td>
+                <span class="fw-semibold">{{ r.hostel.name }}</span>
+                <span class="badge bg-light text-muted border ms-1">{{ r.hostel.code }}</span>
+              </td>
+              <td>{{ r.floor.floor_name }}</td>
+              <td>{{ r.get_room_type_display }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height: 8px; width: 80px;">
+                    <div class="progress-bar {% if r.is_fully_occupied %}bg-danger{% else %}bg-primary{% endif %}" 
+                         role="progressbar" 
+                         style="width: {% widthratio r.current_occupancy r.capacity 100 %}%;"></div>
+                  </div>
+                  <span class="small fw-semibold">{{ r.current_occupancy }} / {{ r.capacity }}</span>
+                  {% if r.available_beds > 0 and r.room_status != 'MAINTENANCE' %}
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success" style="font-size: 0.72rem;">
+                      {{ r.available_beds }} vacant
+                    </span>
+                  {% endif %}
+                </div>
+              </td>
+              <td class="fw-bold">₹{{ r.monthly_rent }}</td>
+              <td>
+                {% if r.room_status == 'AVAILABLE' %}
+                  <span class="badge-status badge-success">Available</span>
+                {% elif r.room_status == 'PARTIALLY_OCCUPIED' %}
+                  <span class="badge-status badge-info">Partially Full</span>
+                {% elif r.room_status == 'FULL' %}
+                  <span class="badge-status badge-danger">Full</span>
+                {% elif r.room_status == 'MAINTENANCE' %}
+                  <span class="badge-status badge-warning">Maintenance</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'rooms:room_detail' r.pk %}" class="btn btn-light border" title="View Details">
+                    <i class="fa-solid fa-eye text-primary"></i>
+                  </a>
+                  <a href="{% url 'rooms:room_update' r.pk %}" class="btn btn-light border" title="Edit Room">
+                    <i class="fa-solid fa-pen-to-square text-secondary"></i>
+                  </a>
+                  {% if user.is_superadmin %}
+                    <a href="{% url 'rooms:room_delete' r.pk %}" class="btn btn-light border text-danger" title="Delete Room">
+                      <i class="fa-solid fa-trash"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-door-closed empty-state-icon"></i>
+                  <div class="empty-state-title">No Rooms Found</div>
+                  <div class="empty-state-text">No rooms match the selected filters or none have been added yet.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

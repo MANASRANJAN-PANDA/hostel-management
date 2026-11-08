@@ -1,0 +1,151 @@
+{% extends "base/base.html" %}
+
+{% block title %}Complaint #{{ complaint.id }} - HostelPulse{% endblock %}
+{% block page_title %}Complaint Ticket #{{ complaint.id }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Complaint Ticket #{{ complaint.id }}</h1>
+    <div class="page-subtitle">Logged: {{ complaint.created_at|date:"d M Y, H:i" }} by <strong>{{ complaint.student.user.get_display_name }}</strong> ({{ complaint.student.reg_number }})</div>
+  </div>
+  <div>
+    <a href="{% url 'complaints:complaint_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back to Complaints
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left column: Ticket Info & Resolution Form -->
+  <div class="col-lg-7">
+    <div class="dashboard-card mb-4">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title text-primary">
+          <i class="fa-solid fa-circle-info"></i> Ticket Description
+        </h5>
+        <div>
+          {% if complaint.status == 'RESOLVED' %}
+            <span class="badge-status badge-success">Resolved</span>
+          {% elif complaint.status == 'IN_PROGRESS' %}
+            <span class="badge-status badge-info">In Progress</span>
+          {% elif complaint.status == 'UNDER_REVIEW' %}
+            <span class="badge-status badge-warning">Under Review</span>
+          {% elif complaint.status == 'REJECTED' %}
+            <span class="badge-status badge-danger">Rejected</span>
+          {% else %}
+            <span class="badge-status badge-secondary">Submitted</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="dashboard-card-body">
+        <h4 class="fw-bold mb-2">{{ complaint.title }}</h4>
+        <div class="mb-3">
+          <span class="badge bg-light text-dark border">{{ complaint.get_category_display }}</span>
+          {% if complaint.student.current_room %}
+            <span class="badge bg-light text-muted border ms-1">
+              Room {{ complaint.student.current_room.room_number }} ({{ complaint.student.current_room.hostel.code }})
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="p-3 bg-light rounded-3 border mb-3">
+          <p class="mb-0" style="white-space: pre-wrap;">{{ complaint.description }}</p>
+        </div>
+
+        {% if complaint.attachment %}
+          <div class="mb-3">
+            <h6 class="fw-bold small text-muted text-uppercase mb-2">Photo Attachment</h6>
+            <a href="{{ complaint.attachment.url }}" target="_blank">
+              <img src="{{ complaint.attachment.url }}" alt="Attachment" class="img-fluid rounded border shadow-sm" style="max-height: 260px;">
+            </a>
+          </div>
+        {% endif %}
+
+        {% if complaint.resolution_notes %}
+          <div class="alert alert-success mt-3 mb-0">
+            <strong>Resolution Notes:</strong>
+            <p class="mb-0 mt-1">{{ complaint.resolution_notes }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Update Status & Assign Warden Form -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-sliders text-primary"></i> Update Ticket Status & Assignee
+        </h5>
+      </div>
+      <div class="dashboard-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Ticket Status <span class="text-danger">*</span></label>
+              {{ form.status }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Assign Warden Supervisor</label>
+              {{ form.assigned_warden }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Action / Remarks for Audit Trail</label>
+            {{ form.remarks }}
+            <small class="text-muted">Explain what action was taken, technician dispatched, or reason for rejection.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Final Resolution Summary (If Resolving)</label>
+            {{ form.resolution_notes }}
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary-custom">
+              <i class="fa-solid fa-check me-1"></i> Update Complaint Ticket
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: Timeline History -->
+  <div class="col-lg-5">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-timeline text-primary"></i> Activity & Audit Trail
+        </h5>
+      </div>
+      <div class="dashboard-card-body p-3">
+        {% if history %}
+          <div class="timeline ps-2">
+            {% for item in history %}
+              <div class="p-3 mb-3 rounded bg-light border position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                    {{ item.status_from }} &rarr; {{ item.status_to }}
+                  </span>
+                  <small class="text-muted">{{ item.created_at|date:"d M, H:i" }}</small>
+                </div>
+                <div class="small text-muted mb-1">
+                  By: <strong>{{ item.action_by.get_display_name|default:"System" }}</strong>
+                </div>
+                {% if item.remarks %}
+                  <p class="small text-dark mb-0">{{ item.remarks }}</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted small mb-0">No updates logged yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

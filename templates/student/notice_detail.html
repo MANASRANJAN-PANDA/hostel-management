@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ notice.title }} - HostelPulse{% endblock %}
+{% block page_title %}Hostel Notice{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <div>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-1">
+            {{ notice.get_target_audience_display }}
+          </span>
+          <h4 class="fw-bold mb-0 text-dark">{{ notice.title }}</h4>
+          <small class="text-muted">Published on {{ notice.published_date|date:"d M Y" }} by {{ notice.created_by.get_display_name|default:"Hostel Administration" }}</small>
+        </div>
+        <a href="{% url 'notices:student_board' %}" class="btn btn-sm btn-secondary-custom">
+          <i class="fa-solid fa-arrow-left"></i> All Bulletins
+        </a>
+      </div>
+      <div class="dashboard-card-body p-4">
+        <div class="fs-6 lh-lg mb-4" style="white-space: pre-wrap; color: #334155;">{{ notice.content }}</div>
+
+        {% if notice.attachment %}
+          <div class="p-3 bg-light rounded-3 border d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-file-arrow-down fs-3 text-primary"></i>
+              <div>
+                <div class="fw-bold">Attached Document / Circular</div>
+                <small class="text-muted">Click to preview or download file</small>
+              </div>
+            </div>
+            <a href="{{ notice.attachment.url }}" target="_blank" class="btn btn-primary-custom btn-sm">
+              <i class="fa-solid fa-download"></i> Download
+            </a>
+          </div>
+        {% endif %}
+
+        {% if notice.expiry_date %}
+          <div class="small text-muted border-top pt-3">
+            <i class="fa-regular fa-clock me-1"></i> This circular is active until <strong>{{ notice.expiry_date|date:"d M Y" }}</strong>.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

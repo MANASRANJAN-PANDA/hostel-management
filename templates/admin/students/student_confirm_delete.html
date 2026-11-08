@@ -1,0 +1,38 @@
+{% extends "base/base.html" %}
+
+{% block title %}Confirm Student Deletion - HostelPulse{% endblock %}
+{% block page_title %}Delete Student Account{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="dashboard-card border-danger">
+      <div class="dashboard-card-header bg-danger text-white">
+        <h5 class="dashboard-card-title text-white">
+          <i class="fa-solid fa-triangle-exclamation"></i> Confirm Permanent Deletion
+        </h5>
+      </div>
+      <div class="dashboard-card-body p-4 text-center">
+        <i class="fa-solid fa-circle-exclamation text-danger fs-1 mb-3"></i>
+        <h4 class="fw-bold mb-2">Delete Student Account?</h4>
+        <p class="text-muted mb-4">
+          Are you sure you want to permanently delete student <strong>{{ student.user.get_display_name }}</strong> (Registration: <code>{{ student.reg_number }}</code>)?
+          This will remove their user credentials, room allocations, and associated history.
+        </p>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="d-flex justify-content-center gap-2">
+            <a href="{% url 'students:student_list' %}" class="btn btn-secondary-custom">
+              <i class="fa-solid fa-xmark me-1"></i> Cancel
+            </a>
+            <button type="submit" class="btn btn-danger px-4">
+              <i class="fa-solid fa-trash me-1"></i> Confirm Delete
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

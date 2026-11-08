@@ -1,0 +1,134 @@
+{% extends "base/base.html" %}
+
+{% block title %}Warden Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Warden Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Hostel Wardens</h1>
+    <div class="page-subtitle">Supervise wardens, assign them to residential hostel buildings, and configure permissions.</div>
+  </div>
+  <div>
+    <a href="{% url 'wardens:warden_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-user-plus"></i> Add New Warden
+    </a>
+  </div>
+</div>
+
+<!-- Search & Filter -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search Query</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by warden name, email, phone, or hostel...">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Hostel Building</label>
+      <select name="hostel" class="form-select">
+        <option value="">All Buildings</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'wardens:warden_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Wardens Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-user-tie text-primary"></i> Wardens ({{ total_count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Warden</th>
+            <th>Assigned Hostel</th>
+            <th>Phone</th>
+            <th>Joining Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in wardens %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if w.user.profile_picture %}
+                    <img src="{{ w.user.profile_picture.url }}" alt="avatar" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover;">
+                  {% else %}
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: #FEF3C7; color: #92400E; display: flex; align-items: center; justify-content: center; font-weight: bold;">
+                      {{ w.user.first_name|first|default:w.user.username|first|upper }}
+                    </div>
+                  {% endif %}
+                  <div>
+                    <div class="fw-bold">{{ w.user.get_display_name }}</div>
+                    <small class="text-muted">{{ w.user.email }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if w.assigned_hostel %}
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary">
+                    <i class="fa-solid fa-building me-1"></i> {{ w.assigned_hostel.name }} ({{ w.assigned_hostel.code }})
+                  </span>
+                {% else %}
+                  <span class="badge bg-light text-muted border">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>{{ w.phone|default:w.user.phone|default:"-" }}</td>
+              <td>{{ w.joining_date|date:"d M Y"|default:"-" }}</td>
+              <td>
+                {% if w.user.is_active %}
+                  <span class="badge-status badge-success">Active</span>
+                {% else %}
+                  <span class="badge-status badge-danger">Deactivated</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'wardens:warden_update' w.pk %}" class="btn btn-light border" title="Edit Warden">
+                    <i class="fa-solid fa-pen-to-square text-secondary"></i>
+                  </a>
+                  <a href="{% url 'wardens:warden_toggle_status' w.pk %}" class="btn btn-light border" title="Toggle Status">
+                    {% if w.user.is_active %}
+                      <i class="fa-solid fa-ban text-warning"></i>
+                    {% else %}
+                      <i class="fa-solid fa-check text-success"></i>
+                    {% endif %}
+                  </a>
+                  <a href="{% url 'wardens:warden_delete' w.pk %}" class="btn btn-light border text-danger" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-user-shield empty-state-icon"></i>
+                  <div class="empty-state-title">No Wardens Found</div>
+                  <div class="empty-state-text">No hostel warden records found. Click above to add a warden.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

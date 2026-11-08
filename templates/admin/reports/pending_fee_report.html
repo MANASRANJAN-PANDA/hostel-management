@@ -1,0 +1,89 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Pending Fees & Defaulters - HostelPulse{% endblock %}
+{% block page_title %}Outstanding Fee Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Outstanding Fee Dues Report</h1>
+    <div class="page-subtitle">Total Pending Balances: <strong class="text-danger fs-5">₹{{ total_pending|floatformat:2|intcomma }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn-secondary-custom">
+      <i class="fa-solid fa-print"></i> Print
+    </button>
+    <a href="?export=csv{% if month %}&month={{ month }}{% endif %}" class="btn-primary-custom">
+      <i class="fa-solid fa-file-csv"></i> Export CSV
+    </a>
+    <a href="{% url 'reports:reports_index' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Reports Menu
+    </a>
+  </div>
+</div>
+
+<div class="filter-card no-print">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label class="filter-label">Billing Month</label>
+      <input type="text" name="month" value="{{ month }}" class="form-control" placeholder="e.g. 2026-11">
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">Filter</button>
+      <a href="{% url 'reports:pending_fee_report' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Reg No.</th>
+            <th>Fee Title</th>
+            <th>Category</th>
+            <th>Billing Month</th>
+            <th>Total Amount</th>
+            <th>Paid So Far</th>
+            <th>Remaining Balance</th>
+            <th>Due Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in fee_records %}
+            <tr>
+              <td><strong>{{ f.student.user.get_display_name }}</strong></td>
+              <td><code>{{ f.student.reg_number }}</code></td>
+              <td>{{ f.title }}</td>
+              <td>{{ f.category.name }}</td>
+              <td><code>{{ f.billing_month }}</code></td>
+              <td>₹{{ f.total_amount|intcomma }}</td>
+              <td class="text-success">₹{{ f.paid_amount|intcomma }}</td>
+              <td class="fw-bold text-danger">₹{{ f.remaining_amount|intcomma }}</td>
+              <td>{{ f.due_date|date:"d M Y" }}</td>
+              <td>
+                {% if f.status == 'OVERDUE' %}
+                  <span class="badge-status badge-danger">Overdue</span>
+                {% elif f.status == 'PARTIALLY_PAID' %}
+                  <span class="badge-status badge-warning">Partial</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="10" class="text-center py-4 text-muted">No pending fee records! All dues are clear.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

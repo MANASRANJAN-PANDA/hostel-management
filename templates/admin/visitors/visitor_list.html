@@ -1,0 +1,157 @@
+{% extends "base/base.html" %}
+
+{% block title %}Visitor Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Visitor Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Visitor Registry</h1>
+    <div class="page-subtitle">Track hostel visitors, security check-in/out timestamps, relation to students and gate passes.</div>
+  </div>
+  <div>
+    <a href="{% url 'visitors:visitor_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-user-plus"></i> Register New Visitor
+    </a>
+  </div>
+</div>
+
+<!-- KPIs -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Currently Inside</span>
+      <span class="stat-value text-primary">{{ currently_inside_count }}</span>
+      <span class="stat-sub text-primary">Pending exit checkout</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Today's Visits</span>
+      <span class="stat-value text-success">{{ today_count }}</span>
+      <span class="stat-sub text-muted">Entries logged today</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-id-badge"></i></div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search visitor name, phone, or student...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Visitors</option>
+        <option value="inside" {% if status == 'inside' %}selected{% endif %}>Still Inside Campus</option>
+        <option value="exited" {% if status == 'exited' %}selected{% endif %}>Checked Out</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Date</label>
+      <input type="date" name="date" value="{{ date_filter }}" class="form-control">
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'visitors:visitor_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Visitors Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-id-badge text-primary"></i> Visitor Gate Logs ({{ page_obj.paginator.count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Visitor</th>
+            <th>Phone</th>
+            <th>Visiting Student</th>
+            <th>Relationship & Purpose</th>
+            <th>Entry Time</th>
+            <th>Exit Time</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for v in visitors %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ v.visitor_name }}</div>
+                <small class="text-muted">{{ v.id_proof_type }}: {{ v.id_proof_number|default:"Verified" }}</small>
+              </td>
+              <td>{{ v.phone_number }}</td>
+              <td>
+                <a href="{% url 'students:student_detail' v.student.pk %}" class="fw-semibold text-dark text-decoration-none">
+                  {{ v.student.user.get_display_name }}
+                </a>
+                <div class="text-muted small"><code>{{ v.student.reg_number }}</code></div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ v.relationship }}</span>
+                <div class="small text-muted">{{ v.purpose }}</div>
+              </td>
+              <td>{{ v.entry_time|date:"d M, H:i" }}</td>
+              <td>
+                {% if v.exit_time %}
+                  {{ v.exit_time|date:"d M, H:i" }}
+                {% else %}
+                  <span class="text-muted">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if v.is_currently_inside %}
+                  <span class="badge-status badge-primary" style="background-color: var(--primary-light); color: var(--primary);">
+                    <i class="fa-solid fa-person-walking me-1"></i> Inside
+                  </span>
+                {% else %}
+                  <span class="badge-status badge-secondary">
+                    <i class="fa-solid fa-door-open me-1"></i> Exited
+                  </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if v.is_currently_inside %}
+                  <a href="{% url 'visitors:visitor_checkout' v.pk %}" class="btn btn-sm btn-outline-danger py-1 px-2" title="Record Exit Timestamp">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Check Out
+                  </a>
+                {% else %}
+                  <span class="text-muted small">Completed</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-id-badge empty-state-icon"></i>
+                  <div class="empty-state-title">No Visitor Records Found</div>
+                  <div class="empty-state-text">No visitor entries match your query or filter criteria.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

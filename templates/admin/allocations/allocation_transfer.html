@@ -1,0 +1,68 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ title }} - HostelPulse{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-right-left text-primary"></i> Transfer Student to New Room
+        </h5>
+        <a href="{% url 'allocations:allocation_list' %}" class="btn btn-sm btn-secondary-custom">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+      </div>
+      <div class="dashboard-card-body">
+        <div class="p-3 bg-light rounded-3 border mb-4">
+          <div class="row">
+            <div class="col-sm-6">
+              <small class="text-muted d-block">Student</small>
+              <h6 class="fw-bold mb-0">{{ allocation.student.user.get_display_name }} ({{ allocation.student.reg_number }})</h6>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+              <small class="text-muted d-block">Current Room</small>
+              <h6 class="fw-bold text-primary mb-0">{{ allocation.room.hostel.name }} - Room {{ allocation.room.room_number }}</h6>
+            </div>
+          </div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          
+          <div class="mb-3">
+            <label class="form-label">Destination Room (Available Beds) <span class="text-danger">*</span></label>
+            {{ form.new_room }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Transfer Effective Date <span class="text-danger">*</span></label>
+            {{ form.transfer_date }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Reason for Transfer <span class="text-danger">*</span></label>
+            {{ form.reason }}
+          </div>
+
+          <div class="alert alert-info small d-flex align-items-center gap-2 mb-3">
+            <i class="fa-solid fa-circle-info fs-5"></i>
+            <div>
+              Transferring will atomically vacate the student's current bed in Room {{ allocation.room.room_number }}, update occupancy for both rooms, and open a new active allocation.
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'allocations:allocation_list' %}" class="btn btn-secondary-custom">Cancel</a>
+            <button type="submit" class="btn btn-primary-custom">
+              <i class="fa-solid fa-check me-1"></i> Execute Room Transfer
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends "base/base.html" %}
+
+{% block title %}Reports & Analytics - HostelPulse{% endblock %}
+{% block page_title %}Reports & Institutional Analytics{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Executive Reports & Data Exports</h1>
+    <div class="page-subtitle">Generate tabular statements, print institutional summaries, and export datasets to CSV format.</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- 1. Student Enrollment Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-blue mb-3">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Student Enrolment Report</h5>
+          <p class="text-muted small">Complete census of enrolled students with room allocations, course distribution, and status.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:student_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:student_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Room Occupancy Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-cyan mb-3">
+            <i class="fa-solid fa-bed"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Room Occupancy Report</h5>
+          <p class="text-muted small">Detailed audit of all room blocks, capacities, active beds occupied, and available vacancies.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:occupancy_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:occupancy_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Fee Collection Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-green mb-3">
+            <i class="fa-solid fa-sack-dollar"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Fee Collection Report</h5>
+          <p class="text-muted small">Comprehensive ledger of payments collected, payment modes (UPI, Cash, Bank Transfer), and receipts.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:fee_collection_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:fee_collection_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Pending Dues Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-red mb-3">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Pending Dues & Defaulters</h5>
+          <p class="text-muted small">Breakdown of overdue invoices, partially paid charges, and remaining student balances.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:pending_fee_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:pending_fee_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Complaints Audit Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-amber mb-3">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Complaints & Maintenance</h5>
+          <p class="text-muted small">Resolution performance, category breakdown (Electrical, Mess, Plumbing), and pending issues.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:complaint_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:complaint_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Attendance Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-blue mb-3">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Attendance Compliance Report</h5>
+          <p class="text-muted small">Daily attendance logs, absentee statistics, and institutional presence percentage.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:attendance_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:attendance_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Visitor Gate Report -->
+  <div class="col-md-6 col-lg-4">
+    <div class="dashboard-card h-100">
+      <div class="dashboard-card-body d-flex flex-column justify-content-between p-4">
+        <div>
+          <div class="stat-icon stat-icon-cyan mb-3">
+            <i class="fa-solid fa-id-badge"></i>
+          </div>
+          <h5 class="fw-bold mb-2">Visitor Gate Entry Report</h5>
+          <p class="text-muted small">Complete visitor history with dates, visited students, purposes, and check-in/out timestamps.</p>
+        </div>
+        <div class="d-flex gap-2 pt-3 border-top mt-3">
+          <a href="{% url 'reports:visitor_report' %}" class="btn btn-sm btn-primary-custom flex-grow-1 justify-content-center">View Report</a>
+          <a href="{% url 'reports:visitor_report' %}?export=csv" class="btn btn-sm btn-outline-success" title="Export CSV"><i class="fa-solid fa-file-csv"></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

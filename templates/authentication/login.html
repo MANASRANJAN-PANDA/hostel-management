@@ -1,0 +1,62 @@
+{% extends "base/base.html" %}
+
+{% block title %}Sign In - HostelPulse{% endblock %}
+
+{% block auth_content %}
+<div class="card shadow border-0" style="max-width: 440px; width: 100%; border-radius: 16px;">
+  <div class="card-body p-4 p-sm-5">
+    <div class="text-center mb-4">
+      <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle mb-3" style="width: 56px; height: 56px; font-size: 1.5rem;">
+        <i class="fa-solid fa-hotel"></i>
+      </div>
+      <h3 class="fw-bold mb-1" style="color: var(--navy); letter-spacing: -0.02em;">HostelPulse</h3>
+      <p class="text-muted small">College Hostel Management System</p>
+    </div>
+
+    <form method="post" action="{% url 'accounts:login' %}{% if request.GET.next %}?next={{ request.GET.next }}{% endif %}">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="login-username" class="form-label">Username or Email</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+          <input type="text" name="username" id="login-username" class="form-control border-start-0 ps-0" placeholder="Username or student@college.edu" required autofocus>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label for="login-password" class="form-label mb-0">Password</label>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-lock"></i></span>
+          <input type="password" name="password" id="login-password" class="form-control border-start-0 border-end-0 ps-0" placeholder="Enter password" required>
+          <button class="btn btn-outline-secondary border-start-0 toggle-password-visibility" type="button" data-target="login-password" tabindex="-1">
+            <i class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="remember_me" id="remember-me">
+          <label class="form-check-label small text-muted" for="remember-me">Remember me</label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" style="border-radius: 8px;">
+        <i class="fa-solid fa-right-to-bracket me-2"></i> Sign In to Portal
+      </button>
+    </form>
+
+    <div class="text-center mt-4 pt-3 border-top">
+      <p class="small text-muted mb-0">
+        New Student? 
+        <a href="{% url 'accounts:register' %}" class="fw-semibold text-primary text-decoration-none">
+          Register for Hostel Admission
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

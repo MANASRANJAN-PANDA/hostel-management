@@ -1,0 +1,288 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Student Dashboard - HostelPulse{% endblock %}
+{% block page_title %}Student Residence Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Welcome, {{ student.user.get_display_name }}!</h1>
+    <div class="page-subtitle">Registration No: <strong>{{ student.reg_number }}</strong> | {{ student.course }} ({{ student.academic_year }})</div>
+  </div>
+  <div>
+    <a href="{% url 'complaints:student_complaint_submit' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-pen-to-square"></i> Lodge a Complaint
+    </a>
+  </div>
+</div>
+
+<!-- 4 Key Stat Cards -->
+<div class="stats-grid">
+  <!-- Allocated Room Card -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Allocated Room</span>
+      <span class="stat-value">
+        {% if current_allocation %}
+          {{ current_allocation.room.room_number }}
+        {% else %}
+          <span class="fs-5 text-muted">Unallocated</span>
+        {% endif %}
+      </span>
+      <span class="stat-sub text-muted">
+        {% if current_allocation %}
+          {{ current_allocation.room.hostel.name }} (Floor {{ current_allocation.room.floor.floor_number }})
+        {% else %}
+          Contact warden office
+        {% endif %}
+      </span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-bed"></i></div>
+  </div>
+
+  <!-- Outstanding Fees -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Pending Dues</span>
+      <span class="stat-value {% if total_pending_fee > 0 %}text-danger{% else %}text-success{% endif %}">
+        ₹{{ total_pending_fee|floatformat:2|intcomma }}
+      </span>
+      <span class="stat-sub">
+        {% if total_pending_fee > 0 %}
+          Due on outstanding invoices
+        {% else %}
+          All current fees cleared!
+        {% endif %}
+      </span>
+    </div>
+    <div class="stat-icon {% if total_pending_fee > 0 %}stat-icon-red{% else %}stat-icon-green{% endif %}">
+      <i class="fa-solid fa-receipt"></i>
+    </div>
+  </div>
+
+  <!-- Attendance Rate -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Attendance Rate</span>
+      <span class="stat-value text-primary">{{ attendance_rate }}%</span>
+      <span class="stat-sub text-muted">{{ present_count }} out of {{ total_attendance }} days present</span>
+    </div>
+    <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-calendar-check"></i></div>
+  </div>
+
+  <!-- Active Complaints -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">My Complaints</span>
+      <span class="stat-value">{{ recent_complaints.count }}</span>
+      <span class="stat-sub text-muted">Submitted tickets</span>
+    </div>
+    <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-circle-question"></i></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Room & Roommates Card -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-users text-primary"></i> Current Room & Roommates
+        </h5>
+        <a href="{% url 'student_my_room' %}" class="small text-decoration-none fw-semibold">Details</a>
+      </div>
+      <div class="dashboard-card-body">
+        {% if current_allocation %}
+          <div class="p-3 bg-light rounded-3 mb-3 border">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div>
+                <h5 class="fw-bold mb-0 text-primary">Room {{ current_allocation.room.room_number }}</h5>
+                <small class="text-muted">{{ current_allocation.room.hostel.name }} ({{ current_allocation.room.get_room_type_display }})</small>
+              </div>
+              <span class="badge bg-success">Allocated: {{ current_allocation.allocation_date|date:"d M Y" }}</span>
+            </div>
+            <div class="row mt-3 text-center border-top pt-2">
+              <div class="col-4">
+                <small class="text-muted d-block">Monthly Rent</small>
+                <strong>₹{{ current_allocation.room.monthly_rent }}</strong>
+              </div>
+              <div class="col-4">
+                <small class="text-muted d-block">Capacity</small>
+                <strong>{{ current_allocation.room.capacity }} Beds</strong>
+              </div>
+              <div class="col-4">
+                <small class="text-muted d-block">Floor</small>
+                <strong>{{ current_allocation.room.floor.floor_name }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-muted small text-uppercase mb-2">Roommates</h6>
+          {% if roommates %}
+            <div class="list-group list-group-flush border rounded-3">
+              {% for rm in roommates %}
+                <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user-circle text-primary fs-5"></i>
+                    <div>
+                      <div class="fw-semibold">{{ rm.student.user.get_display_name }}</div>
+                      <small class="text-muted">{{ rm.student.course }} | {{ rm.student.reg_number }}</small>
+                    </div>
+                  </div>
+                  <span class="badge bg-light text-dark border">Active</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-0">No other roommates allocated in this room currently.</p>
+          {% endif %}
+        {% else %}
+          <div class="empty-state py-4">
+            <i class="fa-solid fa-bed empty-state-icon"></i>
+            <div class="empty-state-title">No Active Room Allocation</div>
+            <div class="empty-state-text">Your account is verified, but you have not yet been assigned a hostel room. Please consult the Hostel Warden office.</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending Fee Invoices Card -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-receipt text-primary"></i> Fee Status & Dues
+        </h5>
+        <a href="{% url 'student_my_fees' %}" class="small text-decoration-none fw-semibold">View All Fees</a>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Due Date</th>
+                <th>Total</th>
+                <th>Remaining</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in unpaid_fees %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ f.title }}</div>
+                    <small class="text-muted">{{ f.category.name }}</small>
+                  </td>
+                  <td>{{ f.due_date|date:"d M Y" }}</td>
+                  <td>₹{{ f.total_amount|intcomma }}</td>
+                  <td class="fw-bold text-danger">₹{{ f.remaining_amount|intcomma }}</td>
+                  <td>
+                    {% if f.status == 'OVERDUE' %}
+                      <span class="badge-status badge-danger">Overdue</span>
+                    {% elif f.status == 'PARTIALLY_PAID' %}
+                      <span class="badge-status badge-warning">Partial</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-circle-check text-success fs-4 d-block mb-2"></i>
+                    All dues are cleared! No pending fee payments found.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Notices for Students -->
+  <div class="col-lg-6 mt-4">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-bullhorn text-primary"></i> Latest Hostel Announcements
+        </h5>
+        <a href="{% url 'notices:student_board' %}" class="small text-decoration-none fw-semibold">All Notices</a>
+      </div>
+      <div class="dashboard-card-body p-3">
+        {% for n in recent_notices %}
+          <div class="p-3 mb-2 rounded bg-light border">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold text-dark">{{ n.title }}</span>
+              <small class="text-muted">{{ n.published_date|date:"d M Y" }}</small>
+            </div>
+            <p class="small text-muted mb-2 text-truncate">{{ n.content }}</p>
+            <a href="{% url 'notices:notice_detail' n.pk %}" class="small fw-semibold text-primary text-decoration-none">Read Announcement &rarr;</a>
+          </div>
+        {% empty %}
+          <div class="text-center text-muted py-4">No active announcements at this time.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Complaints Tracking -->
+  <div class="col-lg-6 mt-4">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-triangle-exclamation text-primary"></i> My Recent Complaints
+        </h5>
+        <a href="{% url 'complaints:my_complaints' %}" class="small text-decoration-none fw-semibold">Track All</a>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Ticket</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in recent_complaints %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-truncate" style="max-width: 170px;">{{ c.title }}</div>
+                    <small class="text-muted">#{{ c.id }}</small>
+                  </td>
+                  <td><span class="badge bg-light text-dark border">{{ c.get_category_display }}</span></td>
+                  <td>
+                    {% if c.status == 'RESOLVED' %}
+                      <span class="badge-status badge-success">Resolved</span>
+                    {% elif c.status == 'IN_PROGRESS' %}
+                      <span class="badge-status badge-info">In Progress</span>
+                    {% elif c.status == 'UNDER_REVIEW' %}
+                      <span class="badge-status badge-warning">Under Review</span>
+                    {% elif c.status == 'REJECTED' %}
+                      <span class="badge-status badge-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">Submitted</span>
+                    {% endif %}
+                  </td>
+                  <td>{{ c.created_at|date:"d M" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted py-4">You have not submitted any complaints.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ title }} - HostelPulse{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="dashboard-card border-warning">
+      <div class="dashboard-card-header bg-warning bg-opacity-10">
+        <h5 class="dashboard-card-title text-dark">
+          <i class="fa-solid fa-door-open text-warning"></i> Process Room Vacate / Checkout
+        </h5>
+        <a href="{% url 'allocations:allocation_list' %}" class="btn btn-sm btn-secondary-custom">
+          <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+      </div>
+      <div class="dashboard-card-body">
+        <div class="p-3 bg-light rounded-3 border mb-4">
+          <div class="fw-bold fs-6">{{ allocation.student.user.get_display_name }} ({{ allocation.student.reg_number }})</div>
+          <div class="text-muted small">Hostel: {{ allocation.room.hostel.name }} - Room {{ allocation.room.room_number }}</div>
+          <div class="text-muted small">Allocated Since: {{ allocation.allocation_date|date:"d M Y" }}</div>
+        </div>
+
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Vacating Date <span class="text-danger">*</span></label>
+            {{ form.vacate_date }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Clearance Notes & Remarks <span class="text-danger">*</span></label>
+            {{ form.remarks }}
+            <small class="text-muted">E.g., Key handed over, inventory checked, no damages found, deposit clearance.</small>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'allocations:allocation_list' %}" class="btn btn-secondary-custom">Cancel</a>
+            <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
+              <i class="fa-solid fa-check me-1"></i> Confirm Vacate
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

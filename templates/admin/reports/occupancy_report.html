@@ -1,0 +1,92 @@
+{% extends "base/base.html" %}
+
+{% block title %}Room Occupancy Report - HostelPulse{% endblock %}
+{% block page_title %}Hostel Occupancy Audit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Facility Occupancy & Capacity Report</h1>
+    <div class="page-subtitle">Overall Occupancy Rate: <strong class="text-primary">{{ occupancy_rate }}%</strong> | Total Beds: <strong>{{ total_capacity }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn-secondary-custom">
+      <i class="fa-solid fa-print"></i> Print
+    </button>
+    <a href="?export=csv{% if selected_hostel %}&hostel={{ selected_hostel }}{% endif %}" class="btn-primary-custom">
+      <i class="fa-solid fa-file-csv"></i> Export CSV
+    </a>
+    <a href="{% url 'reports:reports_index' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Reports Menu
+    </a>
+  </div>
+</div>
+
+<div class="stats-grid mb-4">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Bed Capacity</span>
+      <span class="stat-value">{{ total_capacity }}</span>
+      <span class="stat-sub text-muted">Across filtered rooms</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-bed"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Beds Occupied</span>
+      <span class="stat-value text-primary">{{ total_occupied }}</span>
+      <span class="stat-sub text-primary">{{ occupancy_rate }}% Full</span>
+    </div>
+    <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-user-check"></i></div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Available Vacancies</span>
+      <span class="stat-value text-success">{{ total_available }}</span>
+      <span class="stat-sub text-success">Ready for assignment</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Hostel Building</th>
+            <th>Floor</th>
+            <th>Room Number</th>
+            <th>Room Type</th>
+            <th>Capacity</th>
+            <th>Occupied</th>
+            <th>Available</th>
+            <th>Monthly Rent</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rooms %}
+            <tr>
+              <td><strong>{{ r.hostel.name }}</strong></td>
+              <td>{{ r.floor.floor_name }}</td>
+              <td><code>{{ r.room_number }}</code></td>
+              <td>{{ r.get_room_type_display }}</td>
+              <td>{{ r.capacity }}</td>
+              <td class="fw-bold text-primary">{{ r.current_occupancy }}</td>
+              <td class="fw-bold text-success">{{ r.available_beds }}</td>
+              <td>₹{{ r.monthly_rent }}</td>
+              <td><span class="badge bg-light text-dark border">{{ r.get_room_status_display }}</span></td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-4 text-muted">No rooms match filter.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

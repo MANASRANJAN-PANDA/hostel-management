@@ -1,0 +1,176 @@
+{% extends "base/base.html" %}
+
+{% block title %}Daily Attendance - HostelPulse{% endblock %}
+{% block page_title %}Hostel Attendance{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Daily Attendance</h1>
+    <div class="page-subtitle">Track daily presence, monitor resident absentee rates, and view attendance history.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'attendance:attendance_single_add' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-plus"></i> Single Student
+    </a>
+    <a href="{% url 'attendance:attendance_mark_batch' %}?date={{ selected_date }}" class="btn-primary-custom">
+      <i class="fa-solid fa-clipboard-user"></i> Batch Attendance Sheet
+    </a>
+  </div>
+</div>
+
+<!-- Date Summary -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Date Selected</span>
+      <span class="stat-value fs-4">{{ selected_date }}</span>
+      <span class="stat-sub text-muted">Attendance records logged</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-calendar"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Marked</span>
+      <span class="stat-value">{{ total_marked }}</span>
+      <span class="stat-sub text-muted">Students recorded</span>
+    </div>
+    <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-users"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Present</span>
+      <span class="stat-value text-success">{{ present_marked }}</span>
+      <span class="stat-sub text-success">Inside hostel</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-user-check"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Absent / On Leave</span>
+      <span class="stat-value text-danger">{{ absent_marked }}</span>
+      <span class="stat-sub text-danger">Absent on roll</span>
+    </div>
+    <div class="stat-icon stat-icon-red"><i class="fa-solid fa-user-xmark"></i></div>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label class="filter-label">Date</label>
+      <input type="date" name="date" value="{{ selected_date }}" class="form-control">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Hostel Building</label>
+      <select name="hostel" class="form-select">
+        <option value="">All Buildings</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        <option value="PRESENT" {% if status == 'PRESENT' %}selected{% endif %}>Present</option>
+        <option value="ABSENT" {% if status == 'ABSENT' %}selected{% endif %}>Absent</option>
+      </select>
+    </div>
+
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Student Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search name or Reg No...">
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Filter
+      </button>
+      <a href="{% url 'attendance:attendance_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Attendance Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-calendar-check text-primary"></i> Attendance Log for {{ selected_date }}
+    </h5>
+    <a href="{% url 'attendance:attendance_mark_batch' %}?date={{ selected_date }}" class="btn btn-sm btn-outline-primary">
+      <i class="fa-solid fa-pen-to-square"></i> Open Attendance Roll Call
+    </a>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Reg No.</th>
+            <th>Room</th>
+            <th>Status</th>
+            <th>Remarks</th>
+            <th>Recorded By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in attendances %}
+            <tr>
+              <td>
+                <div class="fw-bold">
+                  <a href="{% url 'students:student_detail' a.student.pk %}" class="text-dark text-decoration-none">
+                    {{ a.student.user.get_display_name }}
+                  </a>
+                </div>
+                <small class="text-muted">{{ a.student.course }}</small>
+              </td>
+              <td><code>{{ a.student.reg_number }}</code></td>
+              <td>
+                {% if a.student.current_room %}
+                  <span class="badge bg-light text-dark border">
+                    {{ a.student.current_room.hostel.code }}-{{ a.student.current_room.room_number }}
+                  </span>
+                {% else %}
+                  <span class="text-muted small">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if a.status == 'PRESENT' %}
+                  <span class="badge-status badge-success"><i class="fa-solid fa-check"></i> Present</span>
+                {% else %}
+                  <span class="badge-status badge-danger"><i class="fa-solid fa-xmark"></i> Absent</span>
+                {% endif %}
+              </td>
+              <td>{{ a.remarks|default:"-" }}</td>
+              <td><small class="text-muted">{{ a.recorded_by.get_display_name|default:"Warden" }}</small></td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="6" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-calendar-xmark empty-state-icon"></i>
+                  <div class="empty-state-title">No Attendance Recorded for {{ selected_date }}</div>
+                  <div class="empty-state-text">Click "Batch Attendance Sheet" to take roll call for this date.</div>
+                  <a href="{% url 'attendance:attendance_mark_batch' %}?date={{ selected_date }}" class="btn-primary-custom mt-2">
+                    <i class="fa-solid fa-clipboard-user"></i> Take Roll Call
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base/base.html" %}
+
+{% block title %}Notice Board Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Notices & Announcements{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notice Board</h1>
+    <div class="page-subtitle">Draft, publish and broadcast official announcements, rules, and notices to residents and wardens.</div>
+  </div>
+  <div>
+    <a href="{% url 'notices:notice_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> Publish New Notice
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-bullhorn text-primary"></i> Bulletins ({{ page_obj.paginator.count }})
+    </h5>
+    <a href="{% url 'notices:student_board' %}" class="btn btn-sm btn-outline-primary" target="_blank">
+      <i class="fa-solid fa-eye"></i> View Public Notice Board
+    </a>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Notice Title</th>
+            <th>Audience</th>
+            <th>Published Date</th>
+            <th>Expiry Date</th>
+            <th>Status</th>
+            <th>Attachment</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for n in notices %}
+            <tr>
+              <td>
+                <div class="fw-bold">{{ n.title }}</div>
+                <small class="text-muted text-truncate d-inline-block" style="max-width: 250px;">{{ n.content }}</small>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ n.get_target_audience_display }}</span></td>
+              <td>{{ n.published_date|date:"d M Y" }}</td>
+              <td>{{ n.expiry_date|date:"d M Y"|default:"Indefinite" }}</td>
+              <td>
+                {% if n.is_active %}
+                  <span class="badge-status badge-success">Active / Live</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">Expired / Hidden</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if n.attachment %}
+                  <a href="{{ n.attachment.url }}" target="_blank" class="btn btn-sm btn-light border py-1 px-2">
+                    <i class="fa-solid fa-paperclip text-primary"></i> View
+                  </a>
+                {% else %}
+                  <span class="text-muted small">None</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <a href="{% url 'notices:notice_detail' n.pk %}" class="btn btn-light border" title="Preview">
+                    <i class="fa-solid fa-eye text-primary"></i>
+                  </a>
+                  <a href="{% url 'notices:notice_update' n.pk %}" class="btn btn-light border" title="Edit">
+                    <i class="fa-solid fa-pen-to-square text-secondary"></i>
+                  </a>
+                  <a href="{% url 'notices:notice_delete' n.pk %}" class="btn btn-light border text-danger" title="Delete">
+                    <i class="fa-solid fa-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-bullhorn empty-state-icon"></i>
+                  <div class="empty-state-title">No Notices Found</div>
+                  <div class="empty-state-text">No announcements have been drafted or published.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

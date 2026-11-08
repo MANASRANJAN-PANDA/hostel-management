@@ -1,0 +1,135 @@
+{% extends "base/base.html" %}
+
+{% block title %}Batch Attendance Roll Call - HostelPulse{% endblock %}
+{% block page_title %}Hostel Attendance Roll Call{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Daily Attendance Sheet</h1>
+    <div class="page-subtitle">Mark Present or Absent for enrolled hostel residents for date: <strong>{{ selected_date }}</strong>.</div>
+  </div>
+  <div>
+    <a href="{% url 'attendance:attendance_list' %}?date={{ selected_date }}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> View Attendance Records
+    </a>
+  </div>
+</div>
+
+<!-- Date & Hostel Selector -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label class="filter-label">Attendance Date</label>
+      <input type="date" name="date" value="{{ selected_date }}" class="form-control" onchange="this.form.submit()">
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Filter by Hostel</label>
+      <select name="hostel" class="form-select" onchange="this.form.submit()">
+        <option value="">All Hostels</option>
+        {% for h in hostels %}
+          <option value="{{ h.id }}" {% if hostel_id == h.id|stringformat:"s" %}selected{% endif %}>{{ h.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="d-flex align-items-end">
+      <button type="submit" class="btn btn-secondary-custom">Switch Date / Hostel</button>
+    </div>
+  </form>
+</div>
+
+<!-- Attendance Roll Call Form -->
+<form method="post">
+  {% csrf_token %}
+  <input type="hidden" name="attendance_date" value="{{ selected_date }}">
+
+  <div class="dashboard-card">
+    <div class="dashboard-card-header">
+      <h5 class="dashboard-card-title">
+        <i class="fa-solid fa-list-check text-primary"></i> Residents Roll Sheet ({{ total_count }} Students)
+      </h5>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="markAll('PRESENT')">
+          <i class="fa-solid fa-check-double"></i> Mark All Present
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('ABSENT')">
+          <i class="fa-solid fa-xmark"></i> Mark All Absent
+        </button>
+      </div>
+    </div>
+    <div class="dashboard-card-body p-0">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">#</th>
+              <th>Student Details</th>
+              <th>Reg Number</th>
+              <th>Allocated Room</th>
+              <th style="width: 240px;">Attendance Status</th>
+              <th>Remarks / Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for rec in student_records %}
+              <tr>
+                <td class="text-muted">{{ forloop.counter }}</td>
+                <td>
+                  <div class="fw-bold">{{ rec.student.user.get_display_name }}</div>
+                  <small class="text-muted">{{ rec.student.course }}</small>
+                </td>
+                <td><code>{{ rec.student.reg_number }}</code></td>
+                <td><span class="badge bg-light text-dark border">{{ rec.room_label }}</span></td>
+                <td>
+                  <div class="btn-group w-100" role="group">
+                    <input type="radio" class="btn-check att-radio" name="status_{{ rec.student.id }}" id="pres_{{ rec.student.id }}" value="PRESENT" {% if rec.status == 'PRESENT' %}checked{% endif %}>
+                    <label class="btn btn-sm btn-outline-success" for="pres_{{ rec.student.id }}">
+                      <i class="fa-solid fa-check me-1"></i> Present
+                    </label>
+
+                    <input type="radio" class="btn-check att-radio" name="status_{{ rec.student.id }}" id="abs_{{ rec.student.id }}" value="ABSENT" {% if rec.status == 'ABSENT' %}checked{% endif %}>
+                    <label class="btn btn-sm btn-outline-danger" for="abs_{{ rec.student.id }}">
+                      <i class="fa-solid fa-xmark me-1"></i> Absent
+                    </label>
+                  </div>
+                </td>
+                <td>
+                  <input type="text" name="remarks_{{ rec.student.id }}" value="{{ rec.remarks }}" class="form-control form-control-sm" placeholder="Optional remark (e.g. Leave, Sick, Late entry)">
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">
+                  No active students with room allocations found for this hostel.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if student_records %}
+        <div class="p-3 bg-light border-top d-flex justify-content-between align-items-center">
+          <span class="text-muted small">Once saved, records can be updated anytime by resubmitting this sheet.</span>
+          <button type="submit" class="btn btn-primary-custom px-4 py-2">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Save Roll Call for {{ selected_date }}
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markAll(status) {
+  const radios = document.querySelectorAll('.att-radio');
+  radios.forEach(r => {
+    if (r.value === status) {
+      r.checked = true;
+    }
+  });
+}
+</script>
+{% endblock %}

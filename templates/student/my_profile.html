@@ -1,0 +1,109 @@
+{% extends "base/base.html" %}
+
+{% block title %}My Student Profile - HostelPulse{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Resident Profile</h1>
+    <div class="page-subtitle">College Registration: <code>{{ student.reg_number }}</code> | Account Status: <strong>{{ student.get_account_status_display }}</strong></div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <div class="dashboard-card text-center p-4">
+      <div class="mb-3">
+        {% if student.user.profile_picture %}
+          <img src="{{ student.user.profile_picture.url }}" alt="avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light);">
+        {% else %}
+          <div style="width: 120px; height: 120px; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 2.8rem; font-weight: bold; margin: 0 auto; border: 4px solid var(--primary-light);">
+            {{ student.user.first_name|first|default:student.user.username|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <h4 class="fw-bold mb-1">{{ student.user.get_display_name }}</h4>
+      <div class="text-muted small mb-2">{{ student.course }}</div>
+      <span class="badge-status badge-success">Approved Resident</span>
+
+      <div class="mt-4 pt-3 border-top text-start">
+        <div class="mb-2">
+          <small class="text-muted d-block">Department</small>
+          <strong>{{ student.department }}</strong>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Academic Year</small>
+          <strong>{{ student.academic_year }}</strong>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Roll Number</small>
+          <strong>{{ student.roll_number|default:"-" }}</strong>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Joining / Registration Date</small>
+          <strong>{{ student.joining_date|date:"d M Y" }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-8">
+    <div class="dashboard-card mb-4">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title text-primary">
+          <i class="fa-solid fa-address-book"></i> Contact & Residential Details
+        </h5>
+      </div>
+      <div class="dashboard-card-body">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Email Address</small>
+            <div class="fw-semibold">{{ student.user.email }}</div>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Primary Mobile Phone</small>
+            <div class="fw-semibold">{{ student.user.phone|default:"Not Provided" }}</div>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Gender & Date of Birth</small>
+            <div class="fw-semibold">{{ student.get_gender_display }} | {{ student.dob|date:"d M Y"|default:"-" }}</div>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Parent / Guardian Name</small>
+            <div class="fw-semibold">{{ student.parent_name|default:"-" }}</div>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Parent Contact Phone</small>
+            <div class="fw-semibold">{{ student.parent_phone|default:"-" }}</div>
+          </div>
+          <div class="col-sm-6">
+            <small class="text-muted d-block">Emergency Contact</small>
+            <div class="fw-semibold text-danger">{{ student.emergency_contact|default:"-" }}</div>
+          </div>
+          <div class="col-12">
+            <small class="text-muted d-block">Permanent Address</small>
+            <div class="fw-semibold">{{ student.address|default:"Not Provided" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security notice card -->
+    <div class="dashboard-card border-0 bg-light">
+      <div class="dashboard-card-body p-4 d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-3">
+          <i class="fa-solid fa-shield-halved text-primary fs-2"></i>
+          <div>
+            <h6 class="fw-bold mb-1">Account Password & Security</h6>
+            <small class="text-muted">Keep your portal access password updated regularly.</small>
+          </div>
+        </div>
+        <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-primary btn-sm">
+          <i class="fa-solid fa-key me-1"></i> Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

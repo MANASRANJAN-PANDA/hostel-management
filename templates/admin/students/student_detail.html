@@ -1,0 +1,227 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Student Profile: {{ student.reg_number }} - HostelPulse{% endblock %}
+{% block page_title %}Student Profile{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ student.user.get_display_name }}</h1>
+    <div class="page-subtitle">Registration No: <code>{{ student.reg_number }}</code> | Registered: {{ student.joining_date|date:"d M Y" }}</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'students:student_update' student.pk %}" class="btn-primary-custom">
+      <i class="fa-solid fa-pen-to-square"></i> Edit Profile
+    </a>
+    <a href="{% url 'students:student_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back to Directory
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left column: Profile card -->
+  <div class="col-lg-4">
+    <div class="dashboard-card text-center p-4">
+      <div class="mb-3">
+        {% if student.user.profile_picture %}
+          <img src="{{ student.user.profile_picture.url }}" alt="avatar" style="width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-light);">
+        {% else %}
+          <div style="width: 110px; height: 110px; border-radius: 50%; background: #EFF6FF; color: #2563EB; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin: 0 auto; border: 4px solid var(--primary-light);">
+            {{ student.user.first_name|first|default:student.user.username|first|upper }}
+          </div>
+        {% endif %}
+      </div>
+      <h4 class="fw-bold mb-1">{{ student.user.get_display_name }}</h4>
+      <div class="text-muted small mb-2">{{ student.course }}</div>
+      <div>
+        {% if student.account_status == 'ACTIVE' %}
+          <span class="badge-status badge-success">Active Resident</span>
+        {% elif student.account_status == 'PENDING' %}
+          <span class="badge-status badge-warning">Pending Approval</span>
+        {% else %}
+          <span class="badge-status badge-secondary">{{ student.get_account_status_display }}</span>
+        {% endif %}
+      </div>
+
+      <hr class="my-3">
+
+      <div class="text-start">
+        <div class="mb-2">
+          <small class="text-muted d-block">Email Address</small>
+          <span class="fw-semibold">{{ student.user.email }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Phone Number</small>
+          <span class="fw-semibold">{{ student.user.phone|default:"Not Provided" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Department & Year</small>
+          <span class="fw-semibold">{{ student.department }} ({{ student.academic_year }})</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Roll Number</small>
+          <span class="fw-semibold">{{ student.roll_number|default:"-" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Gender & Date of Birth</small>
+          <span class="fw-semibold">{{ student.get_gender_display }} | {{ student.dob|date:"d M Y"|default:"-" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Parent / Guardian Name</small>
+          <span class="fw-semibold">{{ student.parent_name|default:"-" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Parent Contact Phone</small>
+          <span class="fw-semibold">{{ student.parent_phone|default:"-" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Emergency Contact</small>
+          <span class="fw-semibold text-danger">{{ student.emergency_contact|default:"-" }}</span>
+        </div>
+        <div class="mb-2">
+          <small class="text-muted d-block">Permanent Address</small>
+          <span class="small">{{ student.address|default:"-" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column: Residency, Fees, Attendance -->
+  <div class="col-lg-8">
+    <!-- Active Room Allocation Card -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-bed text-primary"></i> Current Room Allocation
+        </h5>
+        {% if current_allocation %}
+          <div class="d-flex gap-2">
+            <a href="{% url 'allocations:allocation_transfer' current_allocation.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="fa-solid fa-right-left"></i> Transfer
+            </a>
+            <a href="{% url 'allocations:allocation_vacate' current_allocation.pk %}" class="btn btn-sm btn-outline-danger">
+              <i class="fa-solid fa-door-open"></i> Vacate
+            </a>
+          </div>
+        {% else %}
+          <a href="{% url 'allocations:allocation_create' %}" class="btn btn-sm btn-primary">
+            <i class="fa-solid fa-plus"></i> Allocate Room
+          </a>
+        {% endif %}
+      </div>
+      <div class="dashboard-card-body">
+        {% if current_allocation %}
+          <div class="row align-items-center mb-3">
+            <div class="col-sm-6">
+              <div class="fs-4 fw-bold text-primary">
+                {{ current_allocation.room.hostel.name }} - Room {{ current_allocation.room.room_number }}
+              </div>
+              <div class="text-muted small">Floor: {{ current_allocation.room.floor.floor_name }} | Type: {{ current_allocation.room.get_room_type_display }}</div>
+            </div>
+            <div class="col-sm-6 text-sm-end mt-2 mt-sm-0">
+              <div class="small text-muted">Allocated Date</div>
+              <div class="fw-bold">{{ current_allocation.allocation_date|date:"d M Y" }}</div>
+              <div class="text-muted small">Monthly Rent: ₹{{ current_allocation.room.monthly_rent }}</div>
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-muted small text-uppercase mb-2">Roommates</h6>
+          {% if roommates %}
+            <div class="list-group list-group-flush border rounded-3">
+              {% for rm in roommates %}
+                <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-user-circle text-primary fs-5"></i>
+                    <div>
+                      <a href="{% url 'students:student_detail' rm.student.pk %}" class="fw-bold text-dark text-decoration-none">
+                        {{ rm.student.user.get_display_name }}
+                      </a>
+                      <small class="text-muted">({{ rm.student.reg_number }}) - {{ rm.student.course }}</small>
+                    </div>
+                  </div>
+                  <span class="badge bg-light text-dark border">Allocated: {{ rm.allocation_date|date:"d M Y" }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-muted small">No other roommates in this room.</div>
+          {% endif %}
+        {% else %}
+          <p class="text-muted mb-0">This student does not currently have an active room allocation.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Fee Summary & Recent Invoices -->
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-receipt text-primary"></i> Fee Summary
+        </h5>
+        <div class="d-flex gap-3">
+          <span class="small">Total: <strong>₹{{ total_fee|floatformat:0|intcomma }}</strong></span>
+          <span class="small text-success">Paid: <strong>₹{{ total_paid|floatformat:0|intcomma }}</strong></span>
+          <span class="small text-danger">Pending: <strong>₹{{ total_pending|floatformat:0|intcomma }}</strong></span>
+        </div>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Due Date</th>
+                <th>Total</th>
+                <th>Remaining</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in fee_records %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ f.title }}</div>
+                    <small class="text-muted">{{ f.category.name }}</small>
+                  </td>
+                  <td>{{ f.due_date|date:"d M Y" }}</td>
+                  <td>₹{{ f.total_amount|intcomma }}</td>
+                  <td class="fw-bold {% if f.remaining_amount > 0 %}text-danger{% else %}text-success{% endif %}">
+                    ₹{{ f.remaining_amount|intcomma }}
+                  </td>
+                  <td>
+                    {% if f.status == 'PAID' %}
+                      <span class="badge-status badge-success">Paid</span>
+                    {% elif f.status == 'PARTIALLY_PAID' %}
+                      <span class="badge-status badge-warning">Partial</span>
+                    {% elif f.status == 'OVERDUE' %}
+                      <span class="badge-status badge-danger">Overdue</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if f.remaining_amount > 0 %}
+                      <a href="{% url 'fees:payment_record' f.pk %}" class="btn btn-sm btn-primary-custom py-1 px-2" style="font-size: 0.8rem;">
+                        <i class="fa-solid fa-money-bill-wave"></i> Pay
+                      </a>
+                    {% else %}
+                      <span class="text-muted small">Cleared</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-3">No fee records found for this student.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base/base.html" %}
+
+{% block title %}{{ title }} - HostelPulse{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-file-invoice text-primary"></i> {{ title }}
+        </h5>
+        <a href="{% url 'fees:fee_list' %}" class="btn btn-sm btn-secondary-custom">
+          <i class="fa-solid fa-arrow-left"></i> Back to Fees
+        </a>
+      </div>
+      <div class="dashboard-card-body">
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Student <span class="text-danger">*</span></label>
+            {{ form.student }}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Fee Category <span class="text-danger">*</span></label>
+              {{ form.category }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Billing Month / Term <span class="text-danger">*</span></label>
+              {{ form.billing_month }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Fee Title / Invoice Description <span class="text-danger">*</span></label>
+            {{ form.title }}
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Total Amount (₹) <span class="text-danger">*</span></label>
+              {{ form.total_amount }}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Due Date <span class="text-danger">*</span></label>
+              {{ form.due_date }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Notes (Optional)</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'fees:fee_list' %}" class="btn btn-secondary-custom">Cancel</a>
+            <button type="submit" class="btn btn-primary-custom">
+              <i class="fa-solid fa-check me-1"></i> Generate Fee Record
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

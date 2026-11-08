@@ -1,0 +1,85 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Payment Transactions - HostelPulse{% endblock %}
+{% block page_title %}Payment Transactions Log{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Payment Transactions</h1>
+    <div class="page-subtitle">Historical log of all recorded fee collections, receipts, and modes of payment.</div>
+  </div>
+  <div>
+    <a href="{% url 'fees:fee_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Back to Invoices
+    </a>
+  </div>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-receipt text-primary"></i> Payment Receipts ({{ page_obj.paginator.count }})
+    </h5>
+    <div class="fw-bold text-success fs-6">
+      Total Collections: ₹{{ total_amount|intcomma }}
+    </div>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Receipt Number</th>
+            <th>Date</th>
+            <th>Student</th>
+            <th>Fee Category & Title</th>
+            <th>Amount Paid</th>
+            <th>Payment Method</th>
+            <th>Reference</th>
+            <th>Received By</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payments %}
+            <tr>
+              <td><code>{{ p.receipt_number }}</code></td>
+              <td>{{ p.payment_date|date:"d M Y" }}</td>
+              <td>
+                <div class="fw-bold">{{ p.fee_record.student.user.get_display_name }}</div>
+                <small class="text-muted">{{ p.fee_record.student.reg_number }}</small>
+              </td>
+              <td>
+                <div>{{ p.fee_record.title }}</div>
+                <small class="text-muted">{{ p.fee_record.category.name }}</small>
+              </td>
+              <td class="fw-bold text-success">₹{{ p.amount|intcomma }}</td>
+              <td><span class="badge bg-light text-dark border">{{ p.get_payment_method_display }}</span></td>
+              <td><small class="text-muted">{{ p.transaction_reference|default:"-" }}</small></td>
+              <td><small>{{ p.received_by.get_display_name|default:"Admin" }}</small></td>
+              <td>
+                <a href="{% url 'fees:receipt_detail' p.receipt_number %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                  <i class="fa-solid fa-print"></i>
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-receipt empty-state-icon"></i>
+                  <div class="empty-state-title">No Payments Recorded</div>
+                  <div class="empty-state-text">No payment records exist yet.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

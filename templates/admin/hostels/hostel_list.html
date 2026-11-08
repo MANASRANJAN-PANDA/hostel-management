@@ -1,0 +1,91 @@
+{% extends "base/base.html" %}
+
+{% block title %}Hostel Buildings - HostelPulse{% endblock %}
+{% block page_title %}Hostel Buildings & Floors{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Hostel Facilities</h1>
+    <div class="page-subtitle">Configure buildings, floors, residential gender types and wardens.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hostels:floor_create' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-layer-group"></i> Add Floor
+    </a>
+    <a href="{% url 'hostels:hostel_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> Add Building
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  {% for h in hostels %}
+    <div class="col-lg-6">
+      <div class="dashboard-card h-100">
+        <div class="dashboard-card-header">
+          <div>
+            <h5 class="dashboard-card-title">
+              <i class="fa-solid fa-building text-primary"></i> {{ h.name }}
+            </h5>
+            <small class="text-muted">Code: <code>{{ h.code }}</code> | Type: <strong>{{ h.get_gender_type_display }}</strong></small>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{% url 'hostels:floor_create_for_hostel' h.id %}" class="btn btn-sm btn-outline-secondary" title="Add Floor">
+              <i class="fa-solid fa-plus"></i> Floor
+            </a>
+            <a href="{% url 'hostels:hostel_update' h.id %}" class="btn btn-sm btn-outline-primary" title="Edit Building">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </a>
+          </div>
+        </div>
+        <div class="dashboard-card-body">
+          <div class="row text-center mb-3 p-3 bg-light rounded-3 border">
+            <div class="col-4">
+              <div class="small text-muted">Total Rooms</div>
+              <div class="fs-4 fw-bold text-dark">{{ h.total_rooms }}</div>
+            </div>
+            <div class="col-4">
+              <div class="small text-muted">Bed Capacity</div>
+              <div class="fs-4 fw-bold text-primary">{{ h.total_capacity }}</div>
+            </div>
+            <div class="col-4">
+              <div class="small text-muted">Occupied Beds</div>
+              <div class="fs-4 fw-bold text-success">{{ h.total_occupied_beds }}</div>
+            </div>
+          </div>
+
+          <h6 class="fw-bold small text-muted text-uppercase mb-2">Building Floors</h6>
+          {% if h.floors.all %}
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              {% for f in h.floors.all %}
+                <span class="badge bg-white text-dark border px-3 py-2">
+                  <i class="fa-solid fa-stairs text-primary me-1"></i> {{ f.floor_name }} ({{ f.rooms.count }} Rooms)
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted small mb-3">No floors added yet. Click "+ Floor" above to add floors.</p>
+          {% endif %}
+
+          <div class="border-top pt-3 small text-muted">
+            <div><i class="fa-solid fa-location-dot me-1"></i> {{ h.address|default:"Campus premises" }}</div>
+            <div><i class="fa-solid fa-phone me-1"></i> {{ h.contact_phone|default:"No phone configured" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="empty-state">
+        <i class="fa-solid fa-building empty-state-icon"></i>
+        <div class="empty-state-title">No Hostel Buildings Configured</div>
+        <div class="empty-state-text">Get started by creating your first residential hostel building block.</div>
+        <a href="{% url 'hostels:hostel_create' %}" class="btn-primary-custom">
+          <i class="fa-solid fa-plus"></i> Add Hostel Building
+        </a>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

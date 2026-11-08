@@ -1,0 +1,187 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Fee Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Fee Records{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Fee Management</h1>
+    <div class="page-subtitle">Invoice student fees, track pending dues, record collections and print official payment receipts.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'fees:category_list' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-tags"></i> Fee Categories
+    </a>
+    <a href="{% url 'fees:fee_batch_generate' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-layer-group"></i> Batch Generate
+    </a>
+    <a href="{% url 'fees:fee_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> New Fee Record
+    </a>
+  </div>
+</div>
+
+<!-- Financial Summary KPIs -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Invoiced</span>
+      <span class="stat-value">₹{{ total_invoiced|floatformat:0|intcomma }}</span>
+      <span class="stat-sub text-muted">All generated charges</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-file-invoice"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Collected</span>
+      <span class="stat-value text-success">₹{{ total_collected|floatformat:0|intcomma }}</span>
+      <span class="stat-sub text-success">Receipts recorded</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-sack-dollar"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Pending / Outstanding</span>
+      <span class="stat-value text-danger">₹{{ total_outstanding|floatformat:0|intcomma }}</span>
+      <span class="stat-sub text-danger">Uncollected student dues</span>
+    </div>
+    <div class="stat-icon stat-icon-red"><i class="fa-solid fa-circle-exclamation"></i></div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by student name, Reg No, or fee title...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Category</label>
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if category_id == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Payment Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        <option value="PAID" {% if status == 'PAID' %}selected{% endif %}>Paid</option>
+        <option value="PARTIALLY_PAID" {% if status == 'PARTIALLY_PAID' %}selected{% endif %}>Partially Paid</option>
+        <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="OVERDUE" {% if status == 'OVERDUE' %}selected{% endif %}>Overdue</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Billing Month</label>
+      <input type="text" name="month" value="{{ month }}" class="form-control" placeholder="e.g. 2026-11">
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'fees:fee_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Fee Records Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-receipt text-primary"></i> Fee Invoices ({{ page_obj.paginator.count }})
+    </h5>
+    <a href="{% url 'fees:payment_list' %}" class="btn btn-sm btn-outline-primary">
+      <i class="fa-solid fa-clock-rotate-left"></i> View All Payments
+    </a>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Title & Category</th>
+            <th>Month</th>
+            <th>Total Amount</th>
+            <th>Paid</th>
+            <th>Remaining</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for f in fee_records %}
+            <tr>
+              <td>
+                <div class="fw-bold">
+                  <a href="{% url 'students:student_detail' f.student.pk %}" class="text-dark text-decoration-none">
+                    {{ f.student.user.get_display_name }}
+                  </a>
+                </div>
+                <code>{{ f.student.reg_number }}</code>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ f.title }}</div>
+                <small class="badge bg-light text-dark border">{{ f.category.name }}</small>
+              </td>
+              <td><code>{{ f.billing_month }}</code></td>
+              <td>₹{{ f.total_amount|intcomma }}</td>
+              <td class="text-success fw-bold">₹{{ f.paid_amount|intcomma }}</td>
+              <td class="fw-bold {% if f.remaining_amount > 0 %}text-danger{% else %}text-muted{% endif %}">
+                ₹{{ f.remaining_amount|intcomma }}
+              </td>
+              <td>{{ f.due_date|date:"d M Y" }}</td>
+              <td>
+                {% if f.status == 'PAID' %}
+                  <span class="badge-status badge-success">Paid</span>
+                {% elif f.status == 'PARTIALLY_PAID' %}
+                  <span class="badge-status badge-warning">Partial</span>
+                {% elif f.status == 'OVERDUE' %}
+                  <span class="badge-status badge-danger">Overdue</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if f.remaining_amount > 0 %}
+                  <a href="{% url 'fees:payment_record' f.pk %}" class="btn btn-sm btn-primary-custom py-1 px-2" style="font-size: 0.8rem;">
+                    <i class="fa-solid fa-money-bill-wave"></i> Record Payment
+                  </a>
+                {% else %}
+                  <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                    <i class="fa-solid fa-check"></i> Cleared
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="9" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-file-invoice empty-state-icon"></i>
+                  <div class="empty-state-title">No Fee Records Found</div>
+                  <div class="empty-state-text">No invoices found for the selected query. Create a single fee or batch generate for residents.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

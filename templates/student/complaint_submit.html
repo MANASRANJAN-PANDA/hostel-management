@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+
+{% block title %}Lodge a Complaint - HostelPulse{% endblock %}
+{% block page_title %}Lodge a Complaint{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="dashboard-card">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-pen-to-square text-primary"></i> Submit Hostel Issue Ticket
+        </h5>
+        <a href="{% url 'complaints:my_complaints' %}" class="btn btn-sm btn-secondary-custom">
+          <i class="fa-solid fa-arrow-left"></i> My Complaints
+        </a>
+      </div>
+      <div class="dashboard-card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label class="form-label">Complaint Title / Summary <span class="text-danger">*</span></label>
+            {{ form.title }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Issue Category <span class="text-danger">*</span></label>
+            {{ form.category }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Detailed Description <span class="text-danger">*</span></label>
+            {{ form.description }}
+            <small class="text-muted">Describe the exact problem, location (e.g. Room, Bathroom, Mess table), and urgency.</small>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Optional Photo Attachment (JPEG / PNG)</label>
+            {{ form.attachment }}
+            <small class="text-muted">Upload an image of the defect or damage to help the warden assess faster.</small>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+            <a href="{% url 'complaints:my_complaints' %}" class="btn btn-secondary-custom">Cancel</a>
+            <button type="submit" class="btn btn-primary-custom">
+              <i class="fa-solid fa-paper-plane me-1"></i> Submit Complaint Ticket
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

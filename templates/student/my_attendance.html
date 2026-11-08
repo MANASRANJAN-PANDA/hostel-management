@@ -1,0 +1,104 @@
+{% extends "base/base.html" %}
+
+{% block title %}My Attendance Records - HostelPulse{% endblock %}
+{% block page_title %}My Attendance Records{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Attendance History</h1>
+    <div class="page-subtitle">Personal attendance track record, monthly breakdown, and overall hostel residency compliance.</div>
+  </div>
+</div>
+
+<!-- Attendance KPI Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Monthly Attendance</span>
+      <span class="stat-value text-primary">{{ pct }}%</span>
+      <span class="stat-sub text-muted">{{ present_days }} / {{ total_days }} Days for {{ month_filter }}</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-chart-simple"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Days Present</span>
+      <span class="stat-value text-success">{{ present_days }}</span>
+      <span class="stat-sub text-success">Marked present</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-user-check"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Days Absent</span>
+      <span class="stat-value text-danger">{{ absent_days }}</span>
+      <span class="stat-sub text-danger">Absent on roll</span>
+    </div>
+    <div class="stat-icon stat-icon-red"><i class="fa-solid fa-user-xmark"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">All-Time Compliance</span>
+      <span class="stat-value">{{ all_time_pct }}%</span>
+      <span class="stat-sub text-muted">{{ all_time_present }} / {{ all_time_total }} Days overall</span>
+    </div>
+    <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-award"></i></div>
+  </div>
+</div>
+
+<!-- Month Selector -->
+<div class="filter-card">
+  <form method="get" class="d-flex align-items-center gap-2">
+    <label class="form-label mb-0 fw-semibold">Select Month:</label>
+    <input type="month" name="month" value="{{ month_filter }}" class="form-control" style="max-width: 200px;" onchange="this.form.submit()">
+    <button type="submit" class="btn btn-primary-custom btn-sm">Filter</button>
+  </form>
+</div>
+
+<!-- Detailed Records Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-calendar-days text-primary"></i> Roll Records for {{ month_filter }}
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Day</th>
+            <th>Attendance Status</th>
+            <th>Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+            <tr>
+              <td><span class="fw-bold">{{ r.date|date:"d M Y" }}</span></td>
+              <td><span class="text-muted">{{ r.date|date:"l" }}</span></td>
+              <td>
+                {% if r.status == 'PRESENT' %}
+                  <span class="badge-status badge-success"><i class="fa-solid fa-check"></i> Present</span>
+                {% else %}
+                  <span class="badge-status badge-danger"><i class="fa-solid fa-xmark"></i> Absent</span>
+                {% endif %}
+              </td>
+              <td>{{ r.remarks|default:"-" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center py-4 text-muted">No attendance logs found for {{ month_filter }}.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

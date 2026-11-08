@@ -1,0 +1,72 @@
+{% extends "base/base.html" %}
+
+{% block title %}Notice Board - HostelPulse{% endblock %}
+{% block page_title %}Hostel Notices & Bulletins{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Campus Hostel Bulletins</h1>
+    <div class="page-subtitle">Official hostel notices, event announcements, mess timings, and administrative circulars.</div>
+  </div>
+</div>
+
+<!-- Search Query -->
+<div class="filter-card">
+  <form method="get" class="d-flex gap-2">
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search notices by headline or keyword...">
+    <button type="submit" class="btn btn-primary-custom">Search</button>
+    {% if q %}<a href="{% url 'notices:student_board' %}" class="btn btn-secondary-custom">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div class="row g-4">
+  {% for n in notices %}
+    <div class="col-lg-6">
+      <div class="dashboard-card h-100">
+        <div class="dashboard-card-header">
+          <div>
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary mb-1">
+              {{ n.get_target_audience_display }}
+            </span>
+            <h5 class="dashboard-card-title mb-0">
+              <a href="{% url 'notices:notice_detail' n.pk %}" class="text-dark text-decoration-none">
+                {{ n.title }}
+              </a>
+            </h5>
+          </div>
+          <small class="text-muted text-nowrap"><i class="fa-regular fa-calendar me-1"></i> {{ n.published_date|date:"d M Y" }}</small>
+        </div>
+        <div class="dashboard-card-body">
+          <p class="text-muted mb-3" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+            {{ n.content }}
+          </p>
+
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+            {% if n.attachment %}
+              <a href="{{ n.attachment.url }}" target="_blank" class="small text-decoration-none text-primary fw-semibold">
+                <i class="fa-solid fa-paperclip me-1"></i> Download Attachment
+              </a>
+            {% else %}
+              <span class="small text-muted">No attachment</span>
+            {% endif %}
+            <a href="{% url 'notices:notice_detail' n.pk %}" class="btn btn-sm btn-outline-primary">
+              Read Full Notice &rarr;
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="empty-state">
+        <i class="fa-solid fa-bullhorn empty-state-icon"></i>
+        <div class="empty-state-title">No Notices Available</div>
+        <div class="empty-state-text">There are currently no active circulars posted on the bulletin board.</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% include "components/pagination.html" %}
+{% endblock %}

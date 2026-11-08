@@ -1,0 +1,106 @@
+{% extends "base/base.html" %}
+
+{% block title %}Complaint Performance Report - HostelPulse{% endblock %}
+{% block page_title %}Complaints & Resolution Audit{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Complaint Resolution & Maintenance Audit</h1>
+    <div class="page-subtitle">Total Maintenance Tickets: <strong>{{ total_count }}</strong></div>
+  </div>
+  <div class="d-flex gap-2">
+    <button onclick="window.print()" class="btn-secondary-custom">
+      <i class="fa-solid fa-print"></i> Print
+    </button>
+    <a href="?export=csv{% if category %}&category={{ category }}{% endif %}{% if status %}&status={{ status }}{% endif %}" class="btn-primary-custom">
+      <i class="fa-solid fa-file-csv"></i> Export CSV
+    </a>
+    <a href="{% url 'reports:reports_index' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-arrow-left"></i> Reports Menu
+    </a>
+  </div>
+</div>
+
+<div class="filter-card no-print">
+  <form method="get" class="filter-form">
+    <div class="filter-group">
+      <label class="filter-label">Category</label>
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        <option value="ROOM_ISSUES" {% if category == 'ROOM_ISSUES' %}selected{% endif %}>Room Issues</option>
+        <option value="ELECTRICITY" {% if category == 'ELECTRICITY' %}selected{% endif %}>Electricity</option>
+        <option value="WATER_SUPPLY" {% if category == 'WATER_SUPPLY' %}selected{% endif %}>Water Supply</option>
+        <option value="CLEANING" {% if category == 'CLEANING' %}selected{% endif %}>Cleaning</option>
+        <option value="FOOD_MESS" {% if category == 'FOOD_MESS' %}selected{% endif %}>Food / Mess</option>
+        <option value="INTERNET" {% if category == 'INTERNET' %}selected{% endif %}>Internet</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        <option value="SUBMITTED" {% if status == 'SUBMITTED' %}selected{% endif %}>Submitted</option>
+        <option value="UNDER_REVIEW" {% if status == 'UNDER_REVIEW' %}selected{% endif %}>Under Review</option>
+        <option value="IN_PROGRESS" {% if status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+        <option value="RESOLVED" {% if status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+        <option value="REJECTED" {% if status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">Filter</button>
+      <a href="{% url 'reports:complaint_report' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="dashboard-card">
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Ticket #</th>
+            <th>Logged Date</th>
+            <th>Student</th>
+            <th>Category</th>
+            <th>Title</th>
+            <th>Assigned Warden</th>
+            <th>Status</th>
+            <th>Resolved Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in complaints %}
+            <tr>
+              <td><code>#{{ c.id }}</code></td>
+              <td>{{ c.created_at|date:"d M Y, H:i" }}</td>
+              <td>
+                <div class="fw-bold">{{ c.student.user.get_display_name }}</div>
+                <small class="text-muted">{{ c.student.reg_number }}</small>
+              </td>
+              <td><span class="badge bg-light text-dark border">{{ c.get_category_display }}</span></td>
+              <td>{{ c.title }}</td>
+              <td>{{ c.assigned_warden.user.get_display_name|default:"Unassigned" }}</td>
+              <td>
+                {% if c.status == 'RESOLVED' %}
+                  <span class="badge-status badge-success">Resolved</span>
+                {% elif c.status == 'IN_PROGRESS' %}
+                  <span class="badge-status badge-info">In Progress</span>
+                {% else %}
+                  <span class="badge-status badge-warning">{{ c.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>{{ c.resolved_at|date:"d M Y, H:i"|default:"-" }}</td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="8" class="text-center py-4 text-muted">No complaints match filter criteria.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

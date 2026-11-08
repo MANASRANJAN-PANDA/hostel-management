@@ -1,0 +1,169 @@
+{% extends "base/base.html" %}
+
+{% block title %}Complaint Management - HostelPulse{% endblock %}
+{% block page_title %}Hostel Complaints Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Complaint Tickets</h1>
+    <div class="page-subtitle">Track student maintenance issues, assign wardens/technicians, and log resolution workflows.</div>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Tickets</span>
+      <span class="stat-value">{{ total_count }}</span>
+      <span class="stat-sub text-muted">All-time tickets</span>
+    </div>
+    <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-list-check"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Pending Review</span>
+      <span class="stat-value text-danger">{{ pending_count }}</span>
+      <span class="stat-sub text-danger">Requires investigation</span>
+    </div>
+    <div class="stat-icon stat-icon-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">In Progress</span>
+      <span class="stat-value text-warning">{{ in_progress_count }}</span>
+      <span class="stat-sub text-warning">Work currently underway</span>
+    </div>
+    <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Resolved</span>
+      <span class="stat-value text-success">{{ resolved_count }}</span>
+      <span class="stat-sub text-success">Completed successfully</span>
+    </div>
+    <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+  </div>
+</div>
+
+<!-- Filter -->
+<div class="filter-card">
+  <form method="get" class="filter-form">
+    <div class="filter-group" style="flex: 2;">
+      <label class="filter-label">Search</label>
+      <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search ticket title, student name, or reg number...">
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Category</label>
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        {% for cat_key, cat_val in categories %}
+          <option value="{{ cat_key }}" {% if category == cat_key %}selected{% endif %}>{{ cat_val }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label class="filter-label">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        {% for st_key, st_val in statuses %}
+          <option value="{{ st_key }}" {% if status == st_key %}selected{% endif %}>{{ st_val }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary-custom">
+        <i class="fa-solid fa-filter"></i> Apply
+      </button>
+      <a href="{% url 'complaints:complaint_list' %}" class="btn btn-secondary-custom">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Complaints Table -->
+<div class="dashboard-card">
+  <div class="dashboard-card-header">
+    <h5 class="dashboard-card-title">
+      <i class="fa-solid fa-triangle-exclamation text-primary"></i> Complaints List ({{ page_obj.paginator.count }})
+    </h5>
+  </div>
+  <div class="dashboard-card-body p-0">
+    <div class="table-responsive">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Ticket #</th>
+            <th>Title & Category</th>
+            <th>Student</th>
+            <th>Logged Date</th>
+            <th>Assigned Warden</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in complaints %}
+            <tr>
+              <td><code>#{{ c.id }}</code></td>
+              <td>
+                <a href="{% url 'complaints:complaint_detail' c.pk %}" class="fw-bold text-dark text-decoration-none">
+                  {{ c.title }}
+                </a>
+                <div><span class="badge bg-light text-muted border">{{ c.get_category_display }}</span></div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ c.student.user.get_display_name }}</div>
+                <small class="text-muted">{{ c.student.reg_number }}</small>
+              </td>
+              <td>{{ c.created_at|date:"d M Y, H:i" }}</td>
+              <td>
+                {% if c.assigned_warden %}
+                  <span class="small fw-semibold">{{ c.assigned_warden.user.get_display_name }}</span>
+                {% else %}
+                  <span class="text-muted small">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if c.status == 'RESOLVED' %}
+                  <span class="badge-status badge-success">Resolved</span>
+                {% elif c.status == 'IN_PROGRESS' %}
+                  <span class="badge-status badge-info">In Progress</span>
+                {% elif c.status == 'UNDER_REVIEW' %}
+                  <span class="badge-status badge-warning">Under Review</span>
+                {% elif c.status == 'REJECTED' %}
+                  <span class="badge-status badge-danger">Rejected</span>
+                {% else %}
+                  <span class="badge-status badge-secondary">Submitted</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'complaints:complaint_detail' c.pk %}" class="btn btn-sm btn-outline-primary py-1 px-2">
+                  <i class="fa-solid fa-up-right-from-square"></i> Manage
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center py-5">
+                <div class="empty-state p-0">
+                  <i class="fa-solid fa-circle-check empty-state-icon text-success"></i>
+                  <div class="empty-state-title">No Complaints Found</div>
+                  <div class="empty-state-text">No complaint tickets match the selected query criteria.</div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "components/pagination.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,416 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Super Admin Dashboard - HostelPulse{% endblock %}
+{% block page_title %}Super Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Executive Overview</h1>
+    <div class="page-subtitle">Welcome back, {{ user.get_display_name }}. Real-time statistics from hostel database.</div>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'allocations:allocation_create' %}" class="btn-primary-custom">
+      <i class="fa-solid fa-plus"></i> Allocate Room
+    </a>
+    <a href="{% url 'fees:fee_batch_generate' %}" class="btn-secondary-custom">
+      <i class="fa-solid fa-file-invoice"></i> Generate Fees
+    </a>
+  </div>
+</div>
+
+<!-- 8 Key Metric Cards -->
+<div class="stats-grid">
+  <!-- 1. Total Students -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Students</span>
+      <span class="stat-value">{{ total_students|intcomma }}</span>
+      <span class="stat-sub text-success">
+        <i class="fa-solid fa-circle-check"></i> {{ active_students }} Active
+        {% if pending_registrations > 0 %}
+          <span class="badge bg-warning text-dark ms-1">{{ pending_registrations }} Pending</span>
+        {% endif %}
+      </span>
+    </div>
+    <div class="stat-icon stat-icon-blue">
+      <i class="fa-solid fa-user-graduate"></i>
+    </div>
+  </div>
+
+  <!-- 2. Total Rooms -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Rooms</span>
+      <span class="stat-value">{{ total_rooms }}</span>
+      <span class="stat-sub text-muted">Across all hostel blocks</span>
+    </div>
+    <div class="stat-icon stat-icon-cyan">
+      <i class="fa-solid fa-door-open"></i>
+    </div>
+  </div>
+
+  <!-- 3. Occupied Beds -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Occupied Beds</span>
+      <span class="stat-value">{{ total_beds_occupied }}</span>
+      <span class="stat-sub text-primary">{{ occupancy_pct }}% Occupancy Rate</span>
+    </div>
+    <div class="stat-icon stat-icon-blue">
+      <i class="fa-solid fa-bed"></i>
+    </div>
+  </div>
+
+  <!-- 4. Available Beds -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Available Beds</span>
+      <span class="stat-value text-success">{{ total_beds_available }}</span>
+      <span class="stat-sub text-success">Ready for allocation</span>
+    </div>
+    <div class="stat-icon stat-icon-green">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+  </div>
+
+  <!-- 5. Total Wardens -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Wardens</span>
+      <span class="stat-value">{{ total_wardens }}</span>
+      <span class="stat-sub text-muted">Supervisors assigned</span>
+    </div>
+    <div class="stat-icon stat-icon-amber">
+      <i class="fa-solid fa-user-tie"></i>
+    </div>
+  </div>
+
+  <!-- 6. Total Fee Collected -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Fee Collection</span>
+      <span class="stat-value text-success">₹{{ total_fee_collection|floatformat:0|intcomma }}</span>
+      <span class="stat-sub text-muted">All-time recorded receipts</span>
+    </div>
+    <div class="stat-icon stat-icon-green">
+      <i class="fa-solid fa-sack-dollar"></i>
+    </div>
+  </div>
+
+  <!-- 7. Pending Fee Payments -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Pending Dues</span>
+      <span class="stat-value text-danger">₹{{ pending_fee_payments|floatformat:0|intcomma }}</span>
+      <span class="stat-sub text-danger">Outstanding balances</span>
+    </div>
+    <div class="stat-icon stat-icon-red">
+      <i class="fa-solid fa-receipt"></i>
+    </div>
+  </div>
+
+  <!-- 8. Pending Complaints -->
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Pending Complaints</span>
+      <span class="stat-value {% if pending_complaints > 0 %}text-danger{% else %}text-muted{% endif %}">
+        {{ pending_complaints }}
+      </span>
+      <span class="stat-sub">Needs attention</span>
+    </div>
+    <div class="stat-icon stat-icon-red">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+  <div class="col-lg-8">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-chart-column text-primary"></i> Monthly Fee Collections (₹)
+        </h5>
+        <span class="badge bg-light text-muted border">Past 6 Months</span>
+      </div>
+      <div class="dashboard-card-body">
+        <div style="height: 290px;">
+          <canvas id="monthlyFeeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-chart-pie text-primary"></i> Bed Occupancy Ratio
+        </h5>
+        <span class="badge bg-primary text-white">{{ occupancy_pct }}% Full</span>
+      </div>
+      <div class="dashboard-card-body d-flex flex-column align-items-center justify-content-center">
+        <div style="height: 240px; width: 100%; max-width: 260px;">
+          <canvas id="occupancyChart"></canvas>
+        </div>
+        <div class="d-flex justify-content-around w-100 mt-3 pt-2 border-top text-center">
+          <div>
+            <div class="small text-muted">Occupied</div>
+            <strong class="text-primary">{{ total_beds_occupied }}</strong>
+          </div>
+          <div>
+            <div class="small text-muted">Available</div>
+            <strong class="text-success">{{ total_beds_available }}</strong>
+          </div>
+          <div>
+            <div class="small text-muted">Total Capacity</div>
+            <strong>{{ total_capacity }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Registrations & Complaints Grid -->
+<div class="row g-4">
+  <!-- Recent Student Registrations -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-user-plus text-primary"></i> Recent Registrations
+        </h5>
+        <a href="{% url 'students:student_list' %}" class="small text-decoration-none fw-semibold">View All</a>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Reg No.</th>
+                <th>Course</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in recent_students %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold">{{ s.user.get_display_name }}</div>
+                    <small class="text-muted">{{ s.user.email }}</small>
+                  </td>
+                  <td><code>{{ s.reg_number }}</code></td>
+                  <td>{{ s.course }}</td>
+                  <td>
+                    {% if s.account_status == 'ACTIVE' %}
+                      <span class="badge-status badge-success">Active</span>
+                    {% elif s.account_status == 'PENDING' %}
+                      <span class="badge-status badge-warning">Pending</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">{{ s.get_account_status_display }}</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if s.account_status == 'PENDING' %}
+                      <a href="{% url 'students:student_approve' s.pk %}" class="btn btn-sm btn-success py-1 px-2" title="Approve">
+                        <i class="fa-solid fa-check"></i>
+                      </a>
+                    {% endif %}
+                    <a href="{% url 'students:student_detail' s.pk %}" class="btn btn-sm btn-light border py-1 px-2" title="View Profile">
+                      <i class="fa-solid fa-eye text-primary"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">No student registrations recorded yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Complaints -->
+  <div class="col-lg-6">
+    <div class="dashboard-card h-100 mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-triangle-exclamation text-danger"></i> Recent Student Complaints
+        </h5>
+        <a href="{% url 'complaints:complaint_list' %}" class="small text-decoration-none fw-semibold">View All</a>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Complaint</th>
+                <th>Student</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in recent_complaints %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-truncate" style="max-width: 170px;">{{ c.title }}</div>
+                    <small class="text-muted">{{ c.created_at|date:"M d, H:i" }}</small>
+                  </td>
+                  <td>{{ c.student.reg_number }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ c.get_category_display }}</span></td>
+                  <td>
+                    {% if c.status == 'RESOLVED' %}
+                      <span class="badge-status badge-success">Resolved</span>
+                    {% elif c.status == 'IN_PROGRESS' %}
+                      <span class="badge-status badge-info">In Progress</span>
+                    {% elif c.status == 'UNDER_REVIEW' %}
+                      <span class="badge-status badge-warning">Under Review</span>
+                    {% elif c.status == 'REJECTED' %}
+                      <span class="badge-status badge-danger">Rejected</span>
+                    {% else %}
+                      <span class="badge-status badge-secondary">Submitted</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'complaints:complaint_detail' c.pk %}" class="btn btn-sm btn-light border py-1 px-2">
+                      <i class="fa-solid fa-arrow-up-right-from-square text-primary"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="5" class="text-center text-muted py-4">No complaints submitted. Everything is running smoothly!</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Payment Transactions -->
+  <div class="col-12 mt-4">
+    <div class="dashboard-card mb-0">
+      <div class="dashboard-card-header">
+        <h5 class="dashboard-card-title">
+          <i class="fa-solid fa-receipt text-success"></i> Recent Payment Transactions
+        </h5>
+        <a href="{% url 'fees:payment_list' %}" class="small text-decoration-none fw-semibold">View All Transactions</a>
+      </div>
+      <div class="dashboard-card-body p-0">
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Receipt #</th>
+                <th>Date</th>
+                <th>Student</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Method</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in recent_payments %}
+                <tr>
+                  <td><code>{{ p.receipt_number }}</code></td>
+                  <td>{{ p.payment_date|date:"d M Y" }}</td>
+                  <td>
+                    <strong>{{ p.fee_record.student.user.get_display_name }}</strong>
+                    <span class="text-muted">({{ p.fee_record.student.reg_number }})</span>
+                  </td>
+                  <td>{{ p.fee_record.category.name }}</td>
+                  <td class="fw-bold text-success">₹{{ p.amount|intcomma }}</td>
+                  <td><span class="badge bg-light text-dark border">{{ p.get_payment_method_display }}</span></td>
+                  <td>
+                    <a href="{% url 'fees:receipt_detail' p.receipt_number %}" class="btn btn-sm btn-outline-primary py-1 px-2" title="Print Receipt">
+                      <i class="fa-solid fa-print"></i> Receipt
+                    </a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">No recent payments logged.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // 1. Fee Collection Chart (Bar)
+  const feeData = JSON.parse('{{ chart_fee_json|safe }}');
+  const feeCtx = document.getElementById('monthlyFeeChart').getContext('2d');
+  new Chart(feeCtx, {
+    type: 'bar',
+    data: {
+      labels: feeData.labels,
+      datasets: [{
+        label: 'Fee Collection (₹)',
+        data: feeData.data,
+        backgroundColor: '#2563EB',
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) { return '₹' + value.toLocaleString(); }
+          }
+        }
+      }
+    }
+  });
+
+  // 2. Bed Occupancy Doughnut Chart
+  const occData = JSON.parse('{{ occupancy_chart_json|safe }}');
+  const occCtx = document.getElementById('occupancyChart').getContext('2d');
+  new Chart(occCtx, {
+    type: 'doughnut',
+    data: {
+      labels: occData.labels,
+      datasets: [{
+        data: occData.data,
+        backgroundColor: ['#2563EB', '#16A34A'],
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
